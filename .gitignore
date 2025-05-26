@@ -10,6 +10,7 @@ yarn-error.log*
 .env.*.local
 
 .venv
+*.pyc
 
 # Build output
 dist/
