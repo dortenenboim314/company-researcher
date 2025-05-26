@@ -375,7 +375,7 @@ def create_research_workflow():
     return workflow.compile()
 
 # Main function to run company research
-def research_company(company_name: str, company_url: str) -> str:
+def research_company(workflow, company_name: str, company_url: str) -> str:
     """
     Main function to research a company using the multi-agent system
     
@@ -403,7 +403,6 @@ def research_company(company_name: str, company_url: str) -> str:
     }
     
     # Create and run the workflow
-    workflow = create_research_workflow()
     result = workflow.invoke(initial_state)
     
     # Print any errors that occurred
@@ -418,11 +417,19 @@ def research_company(company_name: str, company_url: str) -> str:
 # Example usage
 if __name__ == "__main__":
     # Example: Research Apple Inc.
+    workflow = create_research_workflow()
+
     company_name = "Apple Inc."
     company_url = "https://www.apple.com"
     
-    report = research_company(company_name, company_url)
+    report = research_company(workflow, company_name, company_url)
     print("\n" + "="*50)
     print("FINAL RESEARCH REPORT")
     print("="*50)
     print(report)
+    
+    report_google = research_company(workflow, "Alphabet Inc.", "https://www.google.com")
+    print("\n" + "="*50)
+    print("FINAL RESEARCH REPORT FOR GOOGLE")
+    print("="*50)
+    print(report_google)
