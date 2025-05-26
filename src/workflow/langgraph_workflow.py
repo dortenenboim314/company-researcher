@@ -19,7 +19,6 @@ print("🔑 Using Tavily API Key:", TAVILY_API_KEY)
 llm = ChatOpenAI(
     model="gpt-4", 
     temperature=0.1,
-    OPEN_AI_API_KEY = OPEN_AI_API_KEY,
 )
 
 # Define the shared state that all agents will use
@@ -60,6 +59,7 @@ def company_background_agent(state: ResearchState) -> ResearchState:
 def financial_health_agent(state: ResearchState) -> ResearchState:
     """
     Analyzes company's financial health, revenue, profitability
+    Uses background context for better analysis
     """
     print(f"💰 Analyzing financial health for {state['company_name']}")
     
@@ -68,8 +68,8 @@ def financial_health_agent(state: ResearchState) -> ResearchState:
         query = f"{state['company_name']} financial health revenue profit earnings"
         financial_data = tavily_search(query)
         
-        # Analyze financial metrics
-        state["financial_data"] = analyze_financial_data(financial_data)
+        # Analyze financial metrics WITH background context
+        state["financial_data"] = analyze_financial_data(financial_data, state["company_background"])
         state["current_step"] = "financial_complete"
         
     except Exception as e:
@@ -82,6 +82,7 @@ def financial_health_agent(state: ResearchState) -> ResearchState:
 def market_position_agent(state: ResearchState) -> ResearchState:
     """
     Researches company's market position, competitors, industry standing
+    Uses background context for better analysis
     """
     print(f"📊 Analyzing market position for {state['company_name']}")
     
@@ -90,8 +91,8 @@ def market_position_agent(state: ResearchState) -> ResearchState:
         query = f"{state['company_name']} market position competitors industry analysis"
         market_data = tavily_search(query)
         
-        # Analyze market position
-        state["market_position"] = analyze_market_position(market_data)
+        # Analyze market position WITH background context
+        state["market_position"] = analyze_market_position(market_data, state["company_background"])
         state["current_step"] = "market_complete"
         
     except Exception as e:
