@@ -14,7 +14,6 @@ TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 print("🔑 Using OpenAI API Key:", OPEN_AI_API_KEY)
 print("🔑 Using Tavily API Key:", TAVILY_API_KEY)
 
-
 # Initialize the LLM (you can change this to your preferred model)
 llm = ChatOpenAI(
     model="gpt-4", 
@@ -53,6 +52,7 @@ def company_background_agent(state: ResearchState) -> ResearchState:
         state["errors"].append(f"Background research error: {str(e)}")
         state["company_background"] = "Background research failed"
     
+    print("✅ Background research completed successfully!")
     return state
 
 # Agent 2: Financial Health Analyzer
@@ -63,19 +63,15 @@ def financial_health_agent(state: ResearchState) -> ResearchState:
     """
     print(f"💰 Analyzing financial health for {state['company_name']}")
     
-    try:
-        # Search for financial information
-        query = f"{state['company_name']} financial health revenue profit earnings"
-        financial_data = tavily_search(query)
-        
-        # Analyze financial metrics WITH background context
-        state["financial_data"] = analyze_financial_data(financial_data, state["company_background"])
-        state["current_step"] = "financial_complete"
-        
-    except Exception as e:
-        state["errors"].append(f"Financial analysis error: {str(e)}")
-        state["financial_data"] = {"status": "Analysis failed"}
+    # Search for financial information
+    query = f"{state['company_name']} financial health revenue profit earnings"
+    financial_data = tavily_search(query)
     
+    # Analyze financial metrics WITH background context
+    state["financial_data"] = analyze_financial_data(financial_data, state["company_background"])
+        
+    
+    print("✅ Financial health analysis completed successfully!")
     return state
 
 # Agent 3: Market Position Researcher
@@ -86,41 +82,33 @@ def market_position_agent(state: ResearchState) -> ResearchState:
     """
     print(f"📊 Analyzing market position for {state['company_name']}")
     
-    try:
-        # Search for market position and competitive analysis
-        query = f"{state['company_name']} market position competitors industry analysis"
-        market_data = tavily_search(query)
-        
-        # Analyze market position WITH background context
-        state["market_position"] = analyze_market_position(market_data, state["company_background"])
-        state["current_step"] = "market_complete"
-        
-    except Exception as e:
-        state["errors"].append(f"Market analysis error: {str(e)}")
-        state["market_position"] = "Market analysis failed"
+    # Search for market position and competitive analysis
+    query = f"{state['company_name']} market position competitors industry analysis"
+    market_data = tavily_search(query)
     
+    # Analyze market position WITH background context
+    state["market_position"] = analyze_market_position(market_data, state["company_background"])
+        
+    
+    print("✅ Market position analysis completed successfully!")
     return state
 
 # Agent 4: News and Recent Developments Researcher
 def news_researcher_agent(state: ResearchState) -> ResearchState:
     """
     Gathers recent news and developments about the company
+    Uses background context for better analysis
     """
     print(f"📰 Gathering recent news for {state['company_name']}")
     
-    try:
-        # Search for recent news
-        query = f"{state['company_name']} recent news developments 2024 2025"
-        news_data = tavily_search(query)
-        
-        # Process and filter relevant news
-        state["recent_news"] = process_news_data(news_data)
-        state["current_step"] = "news_complete"
-        
-    except Exception as e:
-        state["errors"].append(f"News research error: {str(e)}")
-        state["recent_news"] = []
+    # Search for recent news
+    query = f"{state['company_name']} recent news developments 2024 2025"
+    news_data = tavily_search(query)
     
+    # Process and filter relevant news WITH background context
+    state["recent_news"] = process_news_data(news_data, state["company_background"])
+    
+    print("✅ News research completed successfully!")
     return state
 
 # Agent 5: Report Synthesizer
@@ -130,24 +118,19 @@ def report_synthesizer_agent(state: ResearchState) -> ResearchState:
     """
     print(f"📋 Synthesizing final report for {state['company_name']}")
     
-    try:
-        # Combine all research into a comprehensive report
-        report = generate_final_report(
-            state["company_name"],
-            state["company_url"],
-            state["company_background"],
-            state["financial_data"],
-            state["market_position"],
-            state["recent_news"]
-        )
-        
-        state["final_report"] = report
-        state["current_step"] = "complete"
-        
-    except Exception as e:
-        state["errors"].append(f"Report synthesis error: {str(e)}")
-        state["final_report"] = "Report generation failed"
+    # Combine all research into a comprehensive report
+    report = generate_final_report(
+        state["company_name"],
+        state["company_url"],
+        state["company_background"],
+        state["financial_data"],
+        state["market_position"],
+        state["recent_news"]
+    )
     
+    state["final_report"] = report
+
+    print("✅ Final report generated successfully!")
     return state
 
 # Helper function to call Tavily API
@@ -219,8 +202,8 @@ def process_background_data(data: Dict[str, Any]) -> str:
     except Exception as e:
         return f"Background processing failed: {str(e)}"
 
-def analyze_financial_data(data: Dict[str, Any]) -> Dict[str, Any]:
-    """Analyze financial information using LLM"""
+def analyze_financial_data(data: Dict[str, Any], background: str) -> Dict[str, Any]:
+    """Analyze financial information using LLM with background context"""
     raw_content = ""
     
     if 'answer' in data:
@@ -233,19 +216,22 @@ def analyze_financial_data(data: Dict[str, Any]) -> Dict[str, Any]:
     if not raw_content.strip():
         return {"summary": "Financial data not available", "sources": []}
     
-    # Use LLM to analyze financial information
+    # Use LLM to analyze financial information WITH background context
     prompt = f"""
-    Analyze the following financial information about a company:
+    Company Background Context:
+    {background}
     
+    Financial Information to Analyze:
     {raw_content}
     
-    Please provide an analysis covering:
-    - Revenue trends and financial performance
-    - Profitability and key financial metrics
+    Given the company's background and business model, analyze the financial information covering:
+    - Revenue trends and financial performance (in context of their business)
+    - Profitability and key financial metrics 
     - Financial health and stability
+    - How the financials align with their business strategy
     - Any concerning financial indicators
     
-    Keep it concise but informative.
+    Keep it concise but informative, referencing the business context where relevant.
     """
     
     try:
@@ -257,7 +243,7 @@ def analyze_financial_data(data: Dict[str, Any]) -> Dict[str, Any]:
     except Exception as e:
         return {"summary": f"Financial analysis failed: {str(e)}", "sources": []}
 
-def analyze_market_position(data: Dict[str, Any]) -> str:
+def analyze_market_position(data: Dict[str, Any], background: str) -> str:
     """Analyze market position using LLM"""
     raw_content = ""
     
@@ -293,7 +279,7 @@ def analyze_market_position(data: Dict[str, Any]) -> str:
     except Exception as e:
         return f"Market position analysis failed: {str(e)}"
 
-def process_news_data(data: Dict[str, Any]) -> List[Dict[str, str]]:
+def process_news_data(data: Dict[str, Any], background:str) -> List[Dict[str, str]]:
     """Process and filter news data using LLM"""
     if 'results' not in data or not data['results']:
         return []
@@ -402,11 +388,11 @@ def create_research_workflow():
     workflow.add_node("news_researcher", news_researcher_agent)
     workflow.add_node("report_synthesizer", report_synthesizer_agent)
     
-    # Define the workflow edges (how agents connect)
     workflow.add_edge("background_researcher", "financial_analyzer")
     workflow.add_edge("financial_analyzer", "market_researcher")
     workflow.add_edge("market_researcher", "news_researcher")
     workflow.add_edge("news_researcher", "report_synthesizer")
+    
     workflow.add_edge("report_synthesizer", END)
     
     # Set the entry point
