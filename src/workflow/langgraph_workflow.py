@@ -1,12 +1,16 @@
+import sys
+import os
+# Add the project root to Python path for direct execution
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+
 from typing import TypedDict, List, Dict, Any
 from langgraph.graph import StateGraph, END
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_openai import ChatOpenAI  # or use ChatAnthropic, etc.
-import requests
-import json
-import os
 from datetime import datetime
 from dotenv import load_dotenv
+
+from src.api_clients.tavily_client import TavilyClient
 
 load_dotenv()
 OPEN_AI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -19,6 +23,9 @@ llm = ChatOpenAI(
     model="gpt-4", 
     temperature=0.1,
 )
+
+# Initialize Tavily client
+tavily_client = TavilyClient()
 
 # Define the shared state that all agents will use
 class ResearchState(TypedDict):
@@ -42,7 +49,7 @@ def company_background_agent(state: ResearchState) -> ResearchState:
     try:
         # Use Tavily API to search for company background
         query = f"{state['company_name']} company background history overview"
-        background_data = tavily_search(query)
+        background_data = tavily_client.search(query)
         
         # Process and summarize the background information
         state["company_background"] = process_background_data(background_data)
@@ -65,7 +72,7 @@ def financial_health_agent(state: ResearchState) -> ResearchState:
     
     # Search for financial information
     query = f"{state['company_name']} financial health revenue profit earnings"
-    financial_data = tavily_search(query)
+    financial_data = tavily_client.search(query)
     
     # Analyze financial metrics WITH background context
     state["financial_data"] = analyze_financial_data(financial_data, state["company_background"])
@@ -84,7 +91,7 @@ def market_position_agent(state: ResearchState) -> ResearchState:
     
     # Search for market position and competitive analysis
     query = f"{state['company_name']} market position competitors industry analysis"
-    market_data = tavily_search(query)
+    market_data = tavily_client.search(query)
     
     # Analyze market position WITH background context
     state["market_position"] = analyze_market_position(market_data, state["company_background"])
@@ -103,7 +110,7 @@ def news_researcher_agent(state: ResearchState) -> ResearchState:
     
     # Search for recent news
     query = f"{state['company_name']} recent news developments 2024 2025"
-    news_data = tavily_search(query)
+    news_data = tavily_client.search(query)
     
     # Process and filter relevant news WITH background context
     state["recent_news"] = process_news_data(news_data, state["company_background"])
@@ -132,40 +139,6 @@ def report_synthesizer_agent(state: ResearchState) -> ResearchState:
 
     print("✅ Final report generated successfully!")
     return state
-
-# Helper function to call Tavily API
-def tavily_search(query: str) -> Dict[str, Any]:
-    """
-    Calls Tavily API for web search
-    """
-    # Get API key from environment variable
-    TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
-    
-    if not TAVILY_API_KEY:
-        print("⚠️ TAVILY_API_KEY not found in environment variables")
-        return {"error": "No API key"}
-    
-    url = "https://api.tavily.com/search"
-    headers = {
-        "Content-Type": "application/json"
-    }
-    
-    payload = {
-        "api_key": TAVILY_API_KEY,
-        "query": query,
-        "search_depth": "advanced",
-        "include_answer": True,
-        "include_sources": True,
-        "max_results": 5
-    }
-    
-    try:
-        response = requests.post(url, json=payload, headers=headers)
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        print(f"❌ Tavily API error: {e}")
-        return {"error": str(e)}
 
 # Helper functions for data processing
 def process_background_data(data: Dict[str, Any]) -> str:
