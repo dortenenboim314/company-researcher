@@ -1,23 +1,24 @@
-from typing import Any, Dict, List, TypedDict
+from typing import Any, Dict, List
 from langchain_openai import ChatOpenAI
 import logging
 from langchain_core.messages import HumanMessage
+from company_researcher.agents.BaseAgent import BaseAgent
 from company_researcher.api_clients.tavily_client import PageContent, TavilyBatchSearchInput, TavilyClient
 from company_researcher.workflow.langgraph_workflow import ResearchState
 
-class BackgroundAgent:
+class BackgroundAgent(BaseAgent):
     """
-    A class representing a background agent that performs tasks in the background.
-    This class is designed to be extended by other agents that require background processing.
+    Agent that gathers and summarizes background information for a company.
+    Inherits core behavior from BaseAgent.
     """
 
-    def __init__(self, llm: ChatOpenAI, tavily_client: TavilyClient, config):
-        """
-        Initializes the BackgroundAgent.
-        """
-        self.llm = llm
-        self.tavily_client = tavily_client
-        self.config = config
+    def __init__(
+        self,
+        llm: ChatOpenAI,
+        tavily_client: TavilyClient,
+        config: Dict[str, Any]
+    ):
+        super().__init__(llm, tavily_client, config)
         
     async def run(self, state: ResearchState) -> ResearchState:
         """
