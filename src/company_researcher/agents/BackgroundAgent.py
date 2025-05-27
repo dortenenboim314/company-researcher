@@ -1,22 +1,9 @@
-import os
-import sys
 from typing import Any, Dict, List, TypedDict
 from langchain_openai import ChatOpenAI
 import logging
-from langchain_core.messages import HumanMessage, AIMessage
-from src.api_clients.tavily_client import TavilyBatchSearchInput, TavilyClient
-
-# Define ResearchState locally to avoid import issues
-class ResearchState(TypedDict):
-    company_name: str
-    company_url: str
-    company_background: str
-    financial_data: Dict[str, Any]
-    market_position: str
-    recent_news: List[Dict[str, str]]
-    final_report: str
-    current_step: str
-    errors: List[str]
+from langchain_core.messages import HumanMessage
+from company_researcher.api_clients.tavily_client import TavilyBatchSearchInput, TavilyClient
+from company_researcher.workflow.langgraph_workflow import ResearchState
 
 class BackgroundAgent:
     """

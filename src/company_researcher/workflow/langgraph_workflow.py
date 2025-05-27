@@ -1,9 +1,8 @@
 import sys
 import os
 
-from utils.llm_wrapper import LLMLoggingWrapper
-# Add the project root to Python path for direct execution
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+from company_researcher.utils.llm_wrapper import LLMLoggingWrapper
+from company_researcher.api_clients.tavily_client import TavilyClient
 
 from typing import TypedDict, List, Dict, Any
 from langgraph.graph import StateGraph, END
@@ -12,7 +11,6 @@ from langchain_openai import ChatOpenAI  # or use ChatAnthropic, etc.
 from datetime import datetime
 from dotenv import load_dotenv
 
-from src.api_clients.tavily_client import TavilyClient
 
 load_dotenv()
 OPEN_AI_API_KEY = os.getenv("OPENAI_API_KEY")

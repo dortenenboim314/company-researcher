@@ -3,34 +3,22 @@
 Simple end-to-end test for BackgroundAgent with dreamgroup.com
 Uses real APIs to test the complete pipeline.
 """
-
-import asyncio
 import os
 import sys
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
+
+import asyncio
+from company_researcher.workflow.langgraph_workflow import ResearchState
 import time
-from typing import Dict, Any, TypedDict, List
 from dotenv import load_dotenv
 
-# Add the project root to Python path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from langchain_openai import ChatOpenAI
-from src.api_clients.tavily_client import TavilyClient
-
-# Define ResearchState directly here to avoid import issues
-class ResearchState(TypedDict):
-    company_name: str
-    company_url: str
-    company_background: str
-    financial_data: Dict[str, Any]
-    market_position: str
-    recent_news: List[Dict[str, str]]
-    final_report: str
-    current_step: str
-    errors: List[str]
+from company_researcher.api_clients.tavily_client import TavilyClient
 
 # Import BackgroundAgent with local ResearchState
-from src.agents.BackgroundAgent import BackgroundAgent
+from company_researcher.agents.BackgroundAgent import BackgroundAgent
 
 # Load environment variables
 load_dotenv()
