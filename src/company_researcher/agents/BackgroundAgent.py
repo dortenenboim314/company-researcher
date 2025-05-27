@@ -2,7 +2,7 @@ from typing import Any, Dict, List, TypedDict
 from langchain_openai import ChatOpenAI
 import logging
 from langchain_core.messages import HumanMessage
-from company_researcher.api_clients.tavily_client import TavilyBatchSearchInput, TavilyClient
+from company_researcher.api_clients.tavily_client import PageContent, TavilyBatchSearchInput, TavilyClient
 from company_researcher.workflow.langgraph_workflow import ResearchState
 
 class BackgroundAgent:
@@ -22,12 +22,11 @@ class BackgroundAgent:
     async def run(self, state: ResearchState) -> ResearchState:
         """
         The main method to run the background agent.
-        This method should be overridden by subclasses to implement specific background tasks.
         """
         # Use Tavily API to search for company background
         logging.info(f"Running BackgroundAgent with state: {state}")
-        site_content = await self.tavily_client.crawl(state['company_url'])
-        logging.debug(f"Extracted site content: {site_content}")
+        site_content = await self.tavily_client.crawl(state['company_url'], max_depth=1, limit=5, instructions="Extract company background information.")
+        logging.info(f"Extracted site content: {site_content}")
         
         
         logging.info("Summarizing site content to grounded information.")
@@ -62,24 +61,23 @@ class BackgroundAgent:
         response = self.llm.invoke([HumanMessage(content=prompt)])
         return response.content
         
-    def _summarize_to_grounded_info(self, site_content: List[Dict[str, Any]]) -> str:
+    def _summarize_to_grounded_info(self, site_content: List[PageContent]) -> str:
         """Summarize the crawled site content to grounded information."""
+        
         if not site_content:
-            return "No content found on the site."
+            logging.error("No content found on the site.")
+            raise ValueError("No content found on the site.")
         
         # Use LLM to summarize the crawled content
         # Handle the actual format returned by Tavily crawl
         content_parts = []
         for item in site_content:
-            url = item.get('url', 'Unknown URL')
-            text = item.get('content', '')
-            if text:
-                content_parts.append(f"URL: {url}\nContent: {text}")
+            url = item.url.strip()
+            text = item.raw_content.strip()
+            content_parts.append(f"URL: {url}\nContent:\n{text}")
         
         content = '\n\n'.join(content_parts)
-        
-        if not content.strip():
-            return "No meaningful content found on the site."
+        logging.info(f"summarizing site content, number of parts: {len(content_parts)}")
         
         prompt = f"""
         You are an expert in summarizing company backgrounds.
@@ -96,7 +94,7 @@ class BackgroundAgent:
         response = self.llm.invoke([HumanMessage(content=prompt)])
         return response.content
 
-    def _generate_queries_for_missing_info(self, grounded_info: str, max_queries: int = 3) -> TavilyBatchSearchInput:
+    def _generate_queries_for_missing_info(self, grounded_info: str, max_queries: int) -> TavilyBatchSearchInput:
         """Generate queries for any missing information based on the grounded information."""
         
         prompt = f"""
@@ -112,23 +110,3 @@ class BackgroundAgent:
         
         response = self.llm.with_structured_output(TavilyBatchSearchInput).invoke([HumanMessage(content=prompt)])
         return response
-
-# write a main function to test the BackgroundAgent class
-if __name__ == "__main__":
-    import asyncio
-    from dotenv import load_dotenv
-    from src.api_clients.tavily_client import TavilyClient
-    from langchain_openai import ChatOpenAI
-
-    load_dotenv()
-
-    async def main():
-        llm = ChatOpenAI(model="gpt-4")
-        tavily_client = TavilyClient(api_key="your_tavily_api_key")
-        agent = BackgroundAgent(llm, tavily_client, config={})
-
-        state = ResearchState(company_url="https://dreamgroup.com")
-        result = await agent.run(state)
-        print(result)
-
-    asyncio.run(main())

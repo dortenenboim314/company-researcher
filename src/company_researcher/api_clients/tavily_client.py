@@ -18,6 +18,13 @@ load_dotenv()
 class TavilyBatchSearchInput(BaseModel):
     queries: List[str] = Field(description="List of search queries to perform.")
 
+class PageContent(BaseModel):
+    url: str = Field(description="The URL to crawl.")
+    raw_content: str = Field(description="The content of the page to be crawled.")
+    
+    class Config:
+        allow_population_by_field_name = True
+
 class TavilyClient:
     """
     A simple client for interacting with the Tavily search API.
@@ -36,7 +43,7 @@ class TavilyClient:
         if not self.api_key:
             print("⚠️ TAVILY_API_KEY not found in environment variables")
             
-    async def crawl(self, url: str) -> list[tuple[str, str]]:
+    async def crawl(self, url: str, max_depth, limit, instructions=None) -> list[PageContent]:
         """
         Perform a web crawl using Tavily API.
         
@@ -44,16 +51,20 @@ class TavilyClient:
             url: The URL to crawl.
             
         Returns:
-            List of (url, content) tuples from the crawl results.
+            List of dicts containing the crawled data.
         """
         logging.info(f"Starting crawl for URL: {url}")
         
-        res = await self.async_client.crawl(url=url, max_depth=2, limit=20)
+        res = await self.async_client.crawl(url=url, max_depth=max_depth, limit=limit, instructions=instructions)
         
         logging.info(f"Crawl completed for URL: {url}")
         logging.debug(f"Crawl result: {res}")
         
-        return res['results']
+        pages = [PageContent(**d) for d in res['results']]
+
+        logging.info(f"Extracted {len(pages)} pages from crawl.")
+        return pages
+        
     
     
         

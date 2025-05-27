@@ -15,7 +15,13 @@ from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from company_researcher.api_clients.tavily_client import TavilyClient
 from company_researcher.agents.BackgroundAgent import BackgroundAgent
+import logging
 
+# configure root logger
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s"
+)
 # Load environment variables
 load_dotenv()
 
