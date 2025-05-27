@@ -12,12 +12,8 @@ import asyncio
 from company_researcher.workflow.langgraph_workflow import ResearchState
 import time
 from dotenv import load_dotenv
-
-
 from langchain_openai import ChatOpenAI
 from company_researcher.api_clients.tavily_client import TavilyClient
-
-# Import BackgroundAgent with local ResearchState
 from company_researcher.agents.BackgroundAgent import BackgroundAgent
 
 # Load environment variables
