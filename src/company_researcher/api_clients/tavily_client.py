@@ -24,6 +24,23 @@ class PageContent(BaseModel):
     
     class Config:
         allow_population_by_field_name = True
+        
+class ResultCandidate(BaseModel):
+    title: str = Field(description="The title of the search result.")
+    url: str = Field(description="The URL of the search result.")
+    content: str = Field(description="A short description of the search result.")
+    score: float = Field(description="Relevance score of the search result.")
+    
+    class Config:
+        allow_population_by_field_name = True
+        
+class SearchResponse(BaseModel):
+    query: str = Field(description="The search query used.")
+    answer: Optional[str] = Field(default=None, description="The answer to the search query.")
+    candidates: List[ResultCandidate] = Field(alias="results",description="List of search results.")
+    
+    class Config:
+        allow_population_by_field_name = True
 
 class TavilyClient:
     """
@@ -68,7 +85,7 @@ class TavilyClient:
     
     
         
-    async def search(self, batch_search_input: TavilyBatchSearchInput) -> Dict[str, Any]:
+    async def search(self, batch_search_input: TavilyBatchSearchInput) -> list[SearchResponse]:
         """
         Perform a web search using Tavily API.
         
@@ -79,6 +96,13 @@ class TavilyClient:
             Dict containing the search results from Tavily API.
         """
         
-        return await asyncio.gather(
+        results = await asyncio.gather(
             *[self.async_client.search(query=query) for query in batch_search_input.queries]
         )
+        
+        # Debug: Log the actual response structure
+        if results:
+            logging.info(f"Sample API response structure: {list(results[0].keys())}")
+            logging.info(f"Sample API response: {results[0]}")
+        
+        return [SearchResponse(**res) for res in results if res]
