@@ -96,13 +96,12 @@ class TavilyClient:
             Dict containing the search results from Tavily API.
         """
         
+        logging.info(f"Starting search for {len(batch_search_input.queries)} queries.")
+        
         results = await asyncio.gather(
             *[self.async_client.search(query=query) for query in batch_search_input.queries]
         )
         
-        # Debug: Log the actual response structure
-        if results:
-            logging.info(f"Sample API response structure: {list(results[0].keys())}")
-            logging.info(f"Sample API response: {results[0]}")
+        logging.info(f"Search completed, got {len(results)} results.")
         
         return [SearchResponse(**res) for res in results if res]
