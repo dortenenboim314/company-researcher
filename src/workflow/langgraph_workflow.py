@@ -1,11 +1,13 @@
 import sys
 import os
+
+from utils.llm_wrapper import LLMLoggingWrapper
 # Add the project root to Python path for direct execution
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from typing import TypedDict, List, Dict, Any
 from langgraph.graph import StateGraph, END
-from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI  # or use ChatAnthropic, etc.
 from datetime import datetime
 from dotenv import load_dotenv
@@ -19,10 +21,15 @@ print("🔑 Using OpenAI API Key:", OPEN_AI_API_KEY)
 print("🔑 Using Tavily API Key:", TAVILY_API_KEY)
 
 # Initialize the LLM (you can change this to your preferred model)
-llm = ChatOpenAI(
+llm = LLMLoggingWrapper(ChatOpenAI(
     model="gpt-4", 
-    temperature=0.1,
-)
+    temperature=0,
+))
+
+ChatOpenAI(
+    model="gpt-4", 
+    temperature=0,
+).with_structured_output
 
 # Initialize Tavily client
 tavily_client = TavilyClient()
