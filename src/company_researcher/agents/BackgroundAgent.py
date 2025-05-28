@@ -27,7 +27,7 @@ class BackgroundAgent(BaseAgent):
         """
         # Use Tavily API to search for company background
         logging.info(f"Running BackgroundAgent with state: {state}")
-        site_content = await self.tavily_client.crawl(state.company_url, max_depth=2, limit=10, instructions="Extract company background information.")
+        site_content = await self.tavily_client.crawl(state.company_url, max_depth=2, limit=10, instructions=f"Extract company information about {state.company_name}.")
         logging.info(f"Extracted site content: {site_content}")
         
         
@@ -55,7 +55,7 @@ class BackgroundAgent(BaseAgent):
         You are an expert in summarizing company backgrounds into a structured CompanyBackground JSON.
         Given:
         - A partial CompanyBackground (with some fields already populated)
-        - A list of SearchResponse results
+        - A list of SearchResponse results.  Note that some of the search results may be irrelevant or not useful. You should use your judgment to determine which results are relevant.
 
         Produce a complete CompanyBackground JSON.
         For any field that is non-empty in the partial input, preserve its value exactly; fill only empty or missing fields using the search results.
@@ -107,7 +107,7 @@ class BackgroundAgent(BaseAgent):
         
         prompt = f"""
         You are an expert in generating search queries for missing information.
-        You are given a grounded information about a compan, where some fields are missing.
+        You are given a grounded information about a company, where some fields are missing.
         Your task is to generate search queries that their answers will fill the missing fields in the grounded information.
         You should generate 0-{max_queries} queries.
         
