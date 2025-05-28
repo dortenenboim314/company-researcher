@@ -92,18 +92,6 @@ class BaseAgent(ABC):
         """
         raise NotImplementedError("Subclasses must implement get_info_type_description method.")
 
-    def get_additional_state_updates(self, state: ResearchState, site_content: List[PageContent]) -> Dict[str, Any]:
-        """
-        Get any additional state updates specific to the agent.
-        
-        Args:
-            state: The current research state.
-            site_content: The site content retrieved.
-            
-        Returns:
-            Dictionary of additional state updates.
-        """
-        return {}
 
     async def run_agent_workflow(self, state: ResearchState) -> ResearchState:
         """
@@ -137,10 +125,6 @@ class BaseAgent(ABC):
             self.get_state_field_name(): final_info,
             "current_step": self.__class__.__name__
         }
-        
-        # Add any additional state updates
-        additional_updates = self.get_additional_state_updates(state, site_content)
-        state_updates.update(additional_updates)
         
         return state.model_copy(update=state_updates)
 

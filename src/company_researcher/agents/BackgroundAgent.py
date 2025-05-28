@@ -30,6 +30,42 @@ class BackgroundAgent(BaseAgent):
         logging.info(f"Running BackgroundAgent with state: {state}")
         return await self.run_agent_workflow(state)
 
+    async def run_agent_workflow(self, state: ResearchState) -> ResearchState:
+        """
+        BackgroundAgent's workflow that includes adding site_content to state.
+        
+        Args:
+            state: The current research state.
+            
+        Returns:
+            The updated state after agent execution.
+        """
+        # Get site content (different for each agent)
+        site_content = await self.get_site_content(state)
+        
+        # Summarize site content to grounded information
+        logging.info("Summarizing site content to grounded information.")
+        grounded_info = self._summarize_to_grounded_info(site_content)
+        
+        # Generate queries for missing information
+        max_queries = self.config.get('max_queries', 5)
+        search_input = self._generate_queries_for_missing_info(grounded_info, max_queries)
+        
+        # Search for missing information
+        search_output_for_missing_info = await self.tavily_client.search(search_input)
+        
+        # Process and analyze the information
+        final_info = self._process_data(grounded_info, search_output_for_missing_info)
+        
+        # Prepare state updates including site_content for other agents
+        state_updates = {
+            self.get_state_field_name(): final_info,
+            "current_step": self.__class__.__name__,
+            'site_content': site_content  # BackgroundAgent's special behavior
+        }
+        
+        return state.model_copy(update=state_updates)
+
     async def get_site_content(self, state: ResearchState) -> List[PageContent]:
         """
         BackgroundAgent crawls the site content.
@@ -60,11 +96,3 @@ class BackgroundAgent(BaseAgent):
         Returns description for use in prompts.
         """
         return "background"
-
-    def get_additional_state_updates(self, state: ResearchState, site_content: List[PageContent]) -> Dict[str, Any]:
-        """
-        BackgroundAgent adds site_content to the state for other agents to use.
-        """
-        return {
-            'site_content': site_content
-        }
