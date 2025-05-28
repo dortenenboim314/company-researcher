@@ -3,8 +3,9 @@ from langchain_openai import ChatOpenAI
 import logging
 from langchain_core.messages import HumanMessage
 from company_researcher.agents.BaseAgent import BaseAgent
-from company_researcher.api_clients.tavily_client import PageContent, TavilyBatchSearchInput, TavilyClient
+from company_researcher.api_clients.tavily_client import PageContent, SearchResponse, TavilyBatchSearchInput, TavilyClient
 from company_researcher.workflow.langgraph_workflow import ResearchState
+from company_researcher.workflow.states import CompanyBackground
 
 class BackgroundAgent(BaseAgent):
     """
@@ -26,41 +27,49 @@ class BackgroundAgent(BaseAgent):
         """
         # Use Tavily API to search for company background
         logging.info(f"Running BackgroundAgent with state: {state}")
-        site_content = await self.tavily_client.crawl(state['company_url'], max_depth=1, limit=5, instructions="Extract company background information.")
+        site_content = await self.tavily_client.crawl(state.company_url, max_depth=2, limit=10, instructions="Extract company background information.")
         logging.info(f"Extracted site content: {site_content}")
         
         
         logging.info("Summarizing site content to grounded information.")
-        grounded_info = self._summarize_to_grounded_info(site_content)
+        grounded_company_background = self._summarize_to_grounded_info(site_content)
         
         max_queries = self.config.get('max_queries', 3)
-        search_input = self._generate_queries_for_missing_info(grounded_info, max_queries)
+        search_input = self._generate_queries_for_missing_info(grounded_company_background, max_queries)
         search_output_for_missing_info = await self.tavily_client.search(search_input)
         
         
         # Process and summarize the background information
-        background = self.process_background_data(grounded_info, search_output_for_missing_info)
+        final_background = self.process_background_data(grounded_company_background, search_output_for_missing_info)
         
-        return {
-            'background': {
-                'content': background,
-            }
-        }
+        return state.model_copy(update={
+            'site_content': site_content,
+            "background": final_background,
+            "current_step": "BackgroundAgent"
+        })
         
-    def process_background_data(self, grounded_info: str, search_output: Dict[str, Any]) -> str:
+    def process_background_data(self, grounded_info: CompanyBackground, search_output: List[SearchResponse]) -> str:
         """Process the grounded information and search output to create a comprehensive background report."""
         
         prompt = f"""
-        You are an expert in summarizing company backgrounds.
-        Your given a grounded information about a company, and search results for missing information.
-        The search results may be incomplete or contain irrelevant information. Your'e also given a score for each search result, this score (0-1) gives you an idea of how relevant the search result is to the grounded information. However, the score is not always accurate, so you should use your judgement to determine the relevance of the search results.
-        Your task is to create a comprehensive background report, it must include all the information from the grounded information, and any relevant information from the search results.
-        Grounded Information: {grounded_info}
-        Search Results: {search_output}
+        You are an expert in summarizing company backgrounds into a structured CompanyBackground JSON.
+        Given:
+        - A partial CompanyBackground (with some fields already populated)
+        - A list of SearchResponse results
+
+        Produce a complete CompanyBackground JSON.
+        For any field that is non-empty in the partial input, preserve its value exactly; fill only empty or missing fields using the search results.
+        Do not invent information.
+
+        Partial background (JSON):
+        {grounded_info.model_dump_json(exclude_unset=True)}
+
+        Search results:
+        {search_output}
         """
         
-        response = self.llm.invoke([HumanMessage(content=prompt)])
-        return response.content
+        new_background = self.llm.with_structured_output(CompanyBackground).invoke([HumanMessage(content=prompt)])
+        return new_background
         
     def _summarize_to_grounded_info(self, site_content: List[PageContent]) -> str:
         """Summarize the crawled site content to grounded information."""
@@ -81,29 +90,25 @@ class BackgroundAgent(BaseAgent):
         logging.info(f"summarizing site content, number of parts: {len(content_parts)}")
         
         prompt = f"""
-        You are an expert in summarizing company backgrounds.
-        Your summary should be grounded in the provided content. Do not make assumptions or add information not present in the content.    
-        Please provide a concise but comprehensive summary focusing on:
-        - Company founding and history
-        - Main business activities
-        - Key milestones
-        - Current status
+        You are an expert in summarizing company backgrounds based on their site contents.
+        Your summary should be grounded in the provided content.
+        Only fill fields that the content provides information for.
+        If the content does not provide information for a field, leave it empty.
+        You better not fill fields that the content does not provide information for than to fill them with incorrect information.
         
         {content}
         
         """
-        response = self.llm.invoke([HumanMessage(content=prompt)])
-        return response.content
+        response = self.llm.with_structured_output(CompanyBackground).invoke([HumanMessage(content=prompt)])
+        return response
 
-    def _generate_queries_for_missing_info(self, grounded_info: str, max_queries: int) -> TavilyBatchSearchInput:
+    def _generate_queries_for_missing_info(self, grounded_info: CompanyBackground, max_queries: int) -> TavilyBatchSearchInput:
         """Generate queries for any missing information based on the grounded information."""
         
         prompt = f"""
         You are an expert in generating search queries for missing information.
-        Based on the following grounded information, generate search queries to find any missing details about the company's background.
-        Do not repeat information already present in the grounded information.
-        Do not generate queries that are specific to finance, news or market data. You should only generate queries that are relevant to the company's background, such as its history, founding, main business activities, key milestones, and current status.
-        The queries should be concise and specific, and should not exceed 10 words each.
+        You are given a grounded information about a compan, where some fields are missing.
+        Your task is to generate search queries that their answers will fill the missing fields in the grounded information.
         You should generate 0-{max_queries} queries.
         
         {grounded_info}

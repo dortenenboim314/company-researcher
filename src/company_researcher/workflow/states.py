@@ -54,13 +54,13 @@ class MarketPosition(BaseModel):
 
 class NewsItem(BaseModel):
     title: str = Field(..., description="Headline of the news item")
-    url: AnyUrl = Field(..., description="Link to the news article")
+    url: str = Field(..., description="Link to the news article")
     date_published: Optional[date] = Field(None, description="Publication date")
 
 
 class ResearchState(BaseModel):
     company_name: str = Field(..., description="Full company name")
-    company_url: AnyUrl = Field(..., description="Official website URL")
+    company_url: str = Field(..., description="Official website URL")
     
     background: Optional[CompanyBackground] = Field(
         None, description="Structured background information"
