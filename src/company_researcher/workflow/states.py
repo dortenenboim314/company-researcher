@@ -30,13 +30,29 @@ class CompanyBackground(BaseModel):
 
 
 class FinancialHealth(BaseModel):
-    revenue: Optional[float] = Field(None, description="Latest annual revenue")
-    funding_rounds: Optional[List[str]] = Field(
-        None, description="List of funding rounds and amounts"
+    revenue: Optional[float] = Field(
+        None,
+        description="Latest annual revenue",
+        example=1_000_000.0
     )
-    burn_rate: Optional[str] = Field(None, description="Estimated monthly burn rate")
+    funding_rounds: Optional[List[str]] = Field(
+        default=None,
+        description="List of funding rounds and amounts",
+        example=[
+            "Seed: $1M",
+            "Series A: $5M by Acme Ventures",
+            "Series B: $10M"
+        ]
+    )
+    burn_rate: Optional[str] = Field(
+        None,
+        description="Estimated monthly burn rate",
+        example="$200K/mo"
+    )
     runway_months: Optional[float] = Field(
-        None, description="Estimated runway in months"
+        None,
+        description="Estimated runway in months",
+        example=12.5
     )
 
 
