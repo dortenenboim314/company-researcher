@@ -21,14 +21,10 @@ print("🔑 Using Tavily API Key:", TAVILY_API_KEY)
 
 # Initialize the LLM (you can change this to your preferred model)
 llm = LLMLoggingWrapper(ChatOpenAI(
-    model="gpt-4", 
+    model="gpt-4.1", 
     temperature=0,
 ))
 
-ChatOpenAI(
-    model="gpt-4", 
-    temperature=0,
-).with_structured_output
 
 # Initialize Tavily client
 tavily_client = TavilyClient()
