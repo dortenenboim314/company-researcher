@@ -4,6 +4,8 @@ from datetime import date
 from typing import List, Optional
 from pydantic import BaseModel, AnyUrl, Field
 
+from company_researcher.api_clients.tavily_client import PageContent
+
 
 class InputState(BaseModel):
     company_name: str = Field(..., description="Full name of the company")
@@ -77,6 +79,9 @@ class NewsItem(BaseModel):
 class ResearchState(BaseModel):
     company_name: str = Field(..., description="Full company name")
     company_url: str = Field(..., description="Official website URL")
+    site_content: Optional[list[PageContent]] = Field(
+        default=None, description="Crawled site content"
+    )
     
     background: Optional[CompanyBackground] = Field(
         None, description="Structured background information"
