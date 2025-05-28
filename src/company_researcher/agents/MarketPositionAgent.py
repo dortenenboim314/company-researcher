@@ -5,11 +5,11 @@ import logging
 from company_researcher.agents.BaseAgent import BaseAgent
 from company_researcher.api_clients.tavily_client import PageContent, TavilyClient
 from company_researcher.workflow.langgraph_workflow import ResearchState
-from company_researcher.workflow.states import FinancialHealth
+from company_researcher.workflow.states import MarketPosition
 
-class FinancialHealthAgent(BaseAgent[FinancialHealth]):
+class MarketPositionAgent(BaseAgent[MarketPosition]):
     """
-    Agent that gathers and analyzes financial health information for a company.
+    Agent that gathers and analyzes market position information for a company.
     Inherits core behavior from BaseAgent.
     """
 
@@ -19,7 +19,7 @@ class FinancialHealthAgent(BaseAgent[FinancialHealth]):
         tavily_client: TavilyClient,
         config: Dict[str, Any]
     ):
-        super().__init__(FinancialHealth, llm, tavily_client, config)
+        super().__init__(MarketPosition, llm, tavily_client, config)
         
     async def run(self, state: ResearchState) -> ResearchState:
         """
@@ -30,22 +30,22 @@ class FinancialHealthAgent(BaseAgent[FinancialHealth]):
 
     async def get_site_content(self, state: ResearchState) -> List[PageContent]:
         """
-        FinancialHealthAgent uses existing site content from the state.
+        MarketPositionAgent uses existing site content from the state.
         """
         site_content = state.get('site_content', [])
         if not site_content:
-            logging.warning("No site content found in state for FinancialHealthAgent")
+            logging.warning("No site content found in state for MarketPositionAgent")
         return site_content
 
 
     def get_state_field_name(self) -> str:
         """
-        Returns the field name for financial health information in the state.
+        Returns the field name for market position information in the state.
         """
-        return "financial_health"
+        return "market_position"
 
     def get_info_type_description(self) -> str:
         """
         Returns description for use in prompts.
         """
-        return "financial health"
+        return "market position"

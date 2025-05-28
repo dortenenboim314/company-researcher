@@ -10,7 +10,12 @@ from company_researcher.api_clients.tavily_client import PageContent
 class InputState(BaseModel):
     company_name: str = Field(..., description="Full name of the company")
     company_url: AnyUrl = Field(..., description="Official website URL of the company")
-
+    
+class NewsItem(BaseModel):
+    title: str = Field(..., description="Headline of the news item")
+    url: str = Field(..., description="Link to the news article")
+    date_published: Optional[date] = Field(None, description="Publication date")
+    
 class Founded(BaseModel):
     at: Optional[date] = Field(None, description="Founding date of the company", example="2020-10-15")
     by: Optional[List[str]] = Field(
@@ -30,7 +35,11 @@ class CompanyBackground(BaseModel):
         None, description="Brief statement of where the company stands today"
     )
 
-
+class News(BaseModel):
+    recent_important_news: Optional[List[NewsItem]] = Field(
+        default=None, description="List of recent important news items"
+    )
+    
 class FinancialHealth(BaseModel):
     revenue: Optional[float] = Field(
         None,
@@ -57,7 +66,6 @@ class FinancialHealth(BaseModel):
         example=12.5
     )
 
-
 class MarketPosition(BaseModel):
     competitors: Optional[List[str]] = Field(
         None, description="Key competitors"
@@ -70,10 +78,7 @@ class MarketPosition(BaseModel):
     )
 
 
-class NewsItem(BaseModel):
-    title: str = Field(..., description="Headline of the news item")
-    url: str = Field(..., description="Link to the news article")
-    date_published: Optional[date] = Field(None, description="Publication date")
+
 
 
 class ResearchState(BaseModel):
@@ -93,8 +98,8 @@ class ResearchState(BaseModel):
         None, description="Structured market position insights"
     )
     
-    recent_important_news: Optional[List[NewsItem]] = Field(
-        default_factory=list, description="List of recent important news items"
+    news: Optional[News] = Field(
+        default=None, description="Structured recent news information"
     )
     final_report: Optional[str] = Field(
         None, description="Free-form consolidated report"
