@@ -1,15 +1,16 @@
-import sys
 import os
 
 from company_researcher.utils.llm_wrapper import LLMLoggingWrapper
 from company_researcher.api_clients.tavily_client import TavilyClient
 
-from typing import TypedDict, List, Dict, Any
+from typing import List, Dict, Any
 from langgraph.graph import StateGraph, END
 from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI  # or use ChatAnthropic, etc.
 from datetime import datetime
 from dotenv import load_dotenv
+
+from company_researcher.workflow.states import ResearchState
 
 
 load_dotenv()
@@ -32,17 +33,6 @@ ChatOpenAI(
 # Initialize Tavily client
 tavily_client = TavilyClient()
 
-# Define the shared state that all agents will use
-class ResearchState(TypedDict):
-    company_name: str
-    company_url: str
-    company_background: str
-    financial_data: Dict[str, Any]
-    market_position: str
-    recent_news: List[Dict[str, str]]
-    final_report: str
-    current_step: str
-    errors: List[str]
 
 # Agent 1: Company Background Researcher
 def company_background_agent(state: ResearchState) -> ResearchState:
