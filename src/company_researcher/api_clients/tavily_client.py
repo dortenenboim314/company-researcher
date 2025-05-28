@@ -79,9 +79,9 @@ class TavilyClient:
         pages = []
         for d in res.get('results', []):
             raw = d.get('raw_content', '')
-            print(f"Raw content length: {len(raw)}")
+            logging.info(f"Raw content length: {len(raw)}")
             cleaned = TavilyClient._clean_raw_content(raw)
-            print(f"Cleaned content length: {len(cleaned)}")
+            logging.info(f"Cleaned content length: {len(cleaned)}")
             pages.append(PageContent(url=d.get('url', ''), raw_content=cleaned))
 
         logging.info(f"Extracted {len(pages)} pages from crawl.")
