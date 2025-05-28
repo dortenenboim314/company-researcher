@@ -1,20 +1,26 @@
-import asyncio
-from models.company import CompanyInput
-from workflow.langgraph_workflow import run_research_graph
+from fastapi import FastAPI
+from pydantic import BaseModel
+import logging
 
-def get_company_details():
-    name = input("Enter company name to research: ").strip()
-    url = input("Enter company URL: ").strip()
-    return CompanyInput(name=name, url=url)
+app = FastAPI()
 
-async def main():
-    company = get_company_details()
-    results = await run_research_graph(company)
+class Request(BaseModel):
+    company_name: str
+    company_url: str
 
-    print("\n=== Research Results ===")
-    for section, data in results.items():
-        print(f"\n## {section.capitalize()}\n")
-        print(data)
+class Response(BaseModel):
+    company_background: str
+    financial_health: str
+    market_position: str
+    news: str
 
-if __name__ == "__main__":
-    asyncio.run(main())
+@app.get("/searchCompany", response_model=Response)
+def search(company_name: str, company_url: str):
+    logging.info(f"Received request for company: {company_name}, URL: {company_url}")
+    
+    return Response(
+        company_background="Mocked company background information.",
+        financial_health="Mocked financial health data.",
+        market_position="Mocked market position insights.",
+        news="Mocked latest news articles."
+    )
