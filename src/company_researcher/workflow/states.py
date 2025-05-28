@@ -10,9 +10,9 @@ class InputState(BaseModel):
     company_url: AnyUrl = Field(..., description="Official website URL of the company")
 
 class Founded(BaseModel):
-    at: Optional[date] = Field(None, description="Founding date of the company")
+    at: Optional[date] = Field(None, description="Founding date of the company", example="2020-10-15")
     by: Optional[List[str]] = Field(
-        None, description="Names of the founders"
+        None, description="Names of the founders", examples=["Alice Smith", "Bob Johnson"]
     )
 
 class CompanyBackground(BaseModel):
