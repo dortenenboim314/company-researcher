@@ -5,12 +5,11 @@ Tavily API client for web search functionality.
 import asyncio
 import os
 from pydantic import BaseModel, Field
-import requests
-from typing import Dict, Any, List, Optional
+from typing import List, Optional
 from dotenv import load_dotenv
 from tavily import AsyncTavilyClient
 import logging
-
+import re
 
 # Load environment variables
 load_dotenv()
@@ -77,15 +76,18 @@ class TavilyClient:
         logging.info(f"Crawl completed for URL: {url}")
         logging.debug(f"Crawl result: {res}")
         
-        pages = [PageContent(**d) for d in res['results']]
+        pages = []
+        for d in res.get('results', []):
+            raw = d.get('raw_content', '')
+            print(f"Raw content length: {len(raw)}")
+            cleaned = TavilyClient._clean_raw_content(raw)
+            print(f"Cleaned content length: {len(cleaned)}")
+            pages.append(PageContent(url=d.get('url', ''), raw_content=cleaned))
 
         logging.info(f"Extracted {len(pages)} pages from crawl.")
         return pages
         
-    
-    
-        
-    async def search(self, batch_search_input: TavilyBatchSearchInput) -> list[SearchResponse]:
+    async def search(self, batch_search_input: TavilyBatchSearchInput) -> List[SearchResponse]:
         """
         Perform a web search using Tavily API.
         
@@ -105,3 +107,13 @@ class TavilyClient:
         logging.info(f"Search completed, got {len(results)} results.")
         
         return [SearchResponse(**res) for res in results if res]
+
+    @staticmethod
+    def _clean_raw_content(text: str) -> str:
+        # 1) Remove Markdown links [text](url)
+        text = re.sub(r"\[.*?\]\(.*?\)", "", text)
+        # 2) Remove any standalone http(s) URLs
+        text = re.sub(r"https?://\S+", "", text)
+        # 3) Collapse multiple blank lines into one
+        text = re.sub(r"\n\s*\n+", "\n\n", text)
+        return text.strip()
