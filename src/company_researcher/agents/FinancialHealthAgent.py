@@ -8,7 +8,7 @@ from company_researcher.api_clients.tavily_client import PageContent, TavilyClie
 from company_researcher.workflow.langgraph_workflow import ResearchState
 from company_researcher.workflow.states import FinancialHealth
 
-class FinancialHealthAgent(BaseAgent):
+class FinancialHealthAgent(BaseAgent[FinancialHealth]):
     """
     Agent that gathers and analyzes financial health information for a company.
     Inherits core behavior from BaseAgent.
@@ -20,7 +20,7 @@ class FinancialHealthAgent(BaseAgent):
         tavily_client: TavilyClient,
         config: Dict[str, Any]
     ):
-        super().__init__(llm, tavily_client, config)
+        super().__init__(FinancialHealth, llm, tavily_client, config)
         
     async def run(self, state: ResearchState) -> ResearchState:
         """
@@ -38,11 +38,6 @@ class FinancialHealthAgent(BaseAgent):
             logging.warning("No site content found in state for FinancialHealthAgent")
         return site_content
 
-    def get_output_type(self) -> Type[BaseModel]:
-        """
-        Returns the FinancialHealth model for structured output.
-        """
-        return FinancialHealth
 
     def get_state_field_name(self) -> str:
         """

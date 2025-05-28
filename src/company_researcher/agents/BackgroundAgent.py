@@ -8,7 +8,7 @@ from company_researcher.api_clients.tavily_client import PageContent, TavilyClie
 from company_researcher.workflow.langgraph_workflow import ResearchState
 from company_researcher.workflow.states import CompanyBackground
 
-class BackgroundAgent(BaseAgent):
+class BackgroundAgent(BaseAgent[CompanyBackground]):
     """
     Agent that gathers and summarizes background information for a company.
     Inherits core behavior from BaseAgent.
@@ -20,7 +20,7 @@ class BackgroundAgent(BaseAgent):
         tavily_client: TavilyClient,
         config: Dict[str, Any]
     ):
-        super().__init__(llm, tavily_client, config)
+        super().__init__(CompanyBackground, llm, tavily_client, config)
         
     async def run(self, state: ResearchState) -> ResearchState:
         """
@@ -79,11 +79,6 @@ class BackgroundAgent(BaseAgent):
         logging.info(f"Extracted site content: {site_content}")
         return site_content
 
-    def get_output_type(self) -> Type[BaseModel]:
-        """
-        Returns the CompanyBackground model for structured output.
-        """
-        return CompanyBackground
 
     def get_state_field_name(self) -> str:
         """

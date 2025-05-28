@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Type
+from typing import Any, Dict, List, Type, TypeVar, Generic
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage
 import logging
@@ -8,11 +8,13 @@ from pydantic import BaseModel
 from company_researcher.api_clients.tavily_client import PageContent, SearchResponse, TavilyBatchSearchInput, TavilyClient
 from company_researcher.workflow.langgraph_workflow import ResearchState
 
-class BaseAgent(ABC):
+T = TypeVar('T', bound=BaseModel)
+
+class BaseAgent(ABC, Generic[T]):
     """
     Abstract base class for all agents in the company_researcher project.
 
-    All agents must accept an LLM, a TavilyClient, and a configuration dict,
+    All agents must accept an output type, an LLM, a TavilyClient, and a configuration dict,
     and implement an asynchronous `run` method to perform their task.
     
     This class provides common workflow patterns shared by multiple agents.
@@ -20,6 +22,7 @@ class BaseAgent(ABC):
 
     def __init__(
         self,
+        output_type: Type[T],
         llm: ChatOpenAI,
         tavily_client: TavilyClient,
         config: Dict[str, Any]
@@ -28,10 +31,12 @@ class BaseAgent(ABC):
         Initializes the BaseAgent with core dependencies.
 
         Args:
+            output_type: The Pydantic model class for structured output.
             llm: An instance of ChatOpenAI for language model calls.
             tavily_client: An instance of TavilyClient for data retrieval.
             config: A configuration dictionary with agent-specific settings.
         """
+        self.output_type = output_type
         self.llm = llm
         self.tavily_client = tavily_client
         self.config = config
@@ -63,16 +68,6 @@ class BaseAgent(ABC):
         raise NotImplementedError("Subclasses must implement get_site_content method.")
 
     @abstractmethod
-    def get_output_type(self) -> Type[BaseModel]:
-        """
-        Get the structured output type for this agent.
-        
-        Returns:
-            The Pydantic model class for structured output.
-        """
-        raise NotImplementedError("Subclasses must implement get_output_type method.")
-
-    @abstractmethod
     def get_state_field_name(self) -> str:
         """
         Get the field name in the state that this agent updates.
@@ -91,7 +86,6 @@ class BaseAgent(ABC):
             Description string for use in prompts.
         """
         raise NotImplementedError("Subclasses must implement get_info_type_description method.")
-
 
     async def run_agent_workflow(self, state: ResearchState) -> ResearchState:
         """
@@ -128,7 +122,7 @@ class BaseAgent(ABC):
         
         return state.model_copy(update=state_updates)
 
-    def _summarize_to_grounded_info(self, site_content: List[PageContent]) -> BaseModel:
+    def _summarize_to_grounded_info(self, site_content: List[PageContent]) -> T:
         """Summarize the crawled site content to grounded information."""
         
         if not site_content:
@@ -155,10 +149,10 @@ class BaseAgent(ABC):
         {content}
         """
         
-        response = self.llm.with_structured_output(self.get_output_type()).invoke([HumanMessage(content=prompt)])
+        response = self.llm.with_structured_output(self.output_type).invoke([HumanMessage(content=prompt)])
         return response
 
-    def _generate_queries_for_missing_info(self, grounded_info: BaseModel, max_queries: int) -> TavilyBatchSearchInput:
+    def _generate_queries_for_missing_info(self, grounded_info: T, max_queries: int) -> TavilyBatchSearchInput:
         """Generate queries for any missing information based on the grounded information."""
         
         prompt = f"""
@@ -173,13 +167,13 @@ class BaseAgent(ABC):
         response = self.llm.with_structured_output(TavilyBatchSearchInput).invoke([HumanMessage(content=prompt)])
         return response
 
-    def _process_data(self, grounded_info: BaseModel, search_output: List[SearchResponse]) -> BaseModel:
+    def _process_data(self, grounded_info: T, search_output: List[SearchResponse]) -> T:
         """Process the grounded information and search output to create a comprehensive report."""
         
         prompt = f"""
         You are an expert generating reliable {self.get_info_type_description()} information about a company.
         Given:
-        - A partial {self.get_output_type().__name__} (with some fields already populated)
+        - A partial {self.output_type.__name__} (with some fields already populated)
         - A list of SearchResponse results. Note that some of the search results may be irrelevant or not useful. You should use your judgment to determine which results are relevant.
 
         For any field that is non-empty in the partial input, preserve its value exactly; fill only empty or missing fields using the search results.
@@ -192,4 +186,4 @@ class BaseAgent(ABC):
         {search_output}
         """
         
-        return self.llm.with_structured_output(self.get_output_type()).invoke([HumanMessage(content=prompt)])
+        return self.llm.with_structured_output(self.output_type).invoke([HumanMessage(content=prompt)])
