@@ -330,7 +330,7 @@
             
             try {
                 const response = await fetch(
-                    `${API_BASE_URL}/searchCompany?company_name=${encodeURIComponent(companyName)}&company_url=${encodeURIComponent(companyUrl)}`
+                    `${API_BASE_URL}/api/research?company_name=${encodeURIComponent(companyName)}&company_url=${encodeURIComponent(companyUrl)}`
                 );
                 
                 if (!response.ok) {
