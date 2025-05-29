@@ -104,15 +104,22 @@ class BaseAgent(ABC, Generic[T]):
         logging.info("Summarizing site content to grounded information.")
         grounded_info = self._summarize_to_grounded_info(site_content)
         
-        # Generate queries for missing information
-        max_queries = self.config.get('max_queries', 5)
-        search_input = self._generate_queries_for_missing_info(grounded_info, max_queries)
+        missing_information = self._check_missing_fields(grounded_info)
         
-        # Search for missing information
-        search_output_for_missing_info = await self.tavily_client.search(search_input)
-        
-        # Process and analyze the information
-        final_info = self._process_data(grounded_info, search_output_for_missing_info)
+        if missing_information:
+            logging.info("Missing fields detected in grounded information. Generating queries for missing data.")
+            # Generate queries for missing information
+            max_queries = self.config.get('max_queries', 5)
+            search_input = self._generate_queries_for_missing_info(grounded_info, max_queries)
+            
+            # Search for missing information
+            search_output_for_missing_info = await self.tavily_client.search(search_input)
+            
+            # Process and analyze the information
+            final_info = self._process_data(grounded_info, search_output_for_missing_info)
+        else:
+            logging.info("No missing fields detected in grounded information. Using it directly.")
+            final_info = grounded_info
         
         # Prepare state updates
         state_updates = {
@@ -121,6 +128,38 @@ class BaseAgent(ABC, Generic[T]):
         }
         
         return state.model_copy(update=state_updates)
+    
+    def _check_missing_fields(self, grounded_info: T) -> bool:
+        """
+        Check recursively if the grounded information has any None fields.
+        
+        Args:
+            grounded_info: The structured output from the LLM summarization.
+            
+        Returns:
+            True if there are missing fields, False otherwise.
+        """
+        def has_missing_fields(data: Any) -> bool:
+            if data is None:
+                return True
+
+            if isinstance(data, str) and not data.strip():
+                return True
+
+            if isinstance(data, (list, tuple, set)) and len(data) == 0:
+                return True
+
+            if isinstance(data, dict):
+                for v in data.values():
+                    if has_missing_fields(v):
+                        return True
+
+            if isinstance(data, (list, tuple, set)):
+                for item in data:
+                    if has_missing_fields(item):
+                        return True
+        
+        return has_missing_fields(grounded_info.model_dump())
 
     def _summarize_to_grounded_info(self, site_content: List[PageContent]) -> T:
         """Summarize the crawled site content to grounded information."""
@@ -150,6 +189,7 @@ class BaseAgent(ABC, Generic[T]):
         """
         
         response = self.llm.with_structured_output(self.output_type).invoke([HumanMessage(content=prompt)])
+        logging.info(f"Grounded information:\n{response.model_dump_json()}")
         return response
 
     def _generate_queries_for_missing_info(self, grounded_info: T, max_queries: int) -> TavilyBatchSearchInput:
@@ -165,6 +205,8 @@ class BaseAgent(ABC, Generic[T]):
         """
         
         response = self.llm.with_structured_output(TavilyBatchSearchInput).invoke([HumanMessage(content=prompt)])
+        queries_list_str = ', '.join(response.queries)
+        logging.info(f"Queries generated for missing information:\n{queries_list_str}")
         return response
 
     def _process_data(self, grounded_info: T, search_output: List[SearchResponse]) -> T:

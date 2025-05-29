@@ -77,10 +77,6 @@ class MarketPosition(BaseModel):
         None, description="Approximate market share or position"
     )
 
-
-
-
-
 class ResearchState(BaseModel):
     company_name: str = Field(..., description="Full company name")
     company_url: str = Field(..., description="Official website URL")
