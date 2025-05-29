@@ -44,14 +44,14 @@ class BackgroundAgent(BaseAgent[CompanyBackground]):
         
         # Summarize site content to grounded information
         logging.info("Summarizing site content to grounded information.")
-        grounded_info = self._summarize_to_grounded_info(site_content)
+        grounded_info = self._summarize_to_grounded_info(state.company_name, site_content)
         
         # Generate queries for missing information
         if self._check_missing_fields(grounded_info):
             logging.info("Missing fields detected in grounded information. Generating queries for missing data.")
             # Generate queries for missing information
             max_queries = self.config.get('max_queries', 5)
-            search_input = self._generate_queries_for_missing_info(grounded_info, max_queries)
+            search_input = self._generate_queries_for_missing_info(state.company_name, grounded_info, max_queries)
             
             # Search for missing information
             search_output_for_missing_info = await self.tavily_client.search(search_input)

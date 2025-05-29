@@ -104,7 +104,7 @@ class BaseAgent(ABC, Generic[T]):
         
         # Summarize site content to grounded information
         logging.info("Summarizing site content to grounded information.")
-        grounded_info = self._summarize_to_grounded_info(site_content)
+        grounded_info = self._summarize_to_grounded_info(state.company_name, site_content)
         
         missing_information = self._check_missing_fields(grounded_info)
         
@@ -112,7 +112,7 @@ class BaseAgent(ABC, Generic[T]):
             logging.info("Missing fields detected in grounded information. Generating queries for missing data.")
             # Generate queries for missing information
             max_queries = self.config.get('max_queries', 5)
-            search_input = self._generate_queries_for_missing_info(grounded_info, max_queries)
+            search_input = self._generate_queries_for_missing_info(state.company_name, grounded_info, max_queries)
             
             # Search for missing information
             search_output_for_missing_info = await self.tavily_client.search(search_input)
@@ -163,7 +163,7 @@ class BaseAgent(ABC, Generic[T]):
         
         return has_missing_fields(grounded_info.model_dump())
 
-    def _summarize_to_grounded_info(self, site_content: List[PageContent]) -> T:
+    def _summarize_to_grounded_info(self, company_name: str, site_content: List[PageContent]) -> T:
         """Summarize the crawled site content to grounded information."""
         
         if not site_content:
@@ -186,7 +186,8 @@ class BaseAgent(ABC, Generic[T]):
         Only fill fields that the content provides information for.
         If the content does not provide information for a field, leave it empty.
         You better not fill fields that the content does not provide information for than to fill them with incorrect information.
-        
+        Company name: {company_name}
+        Site content:
         {content}
         """
         
@@ -194,17 +195,19 @@ class BaseAgent(ABC, Generic[T]):
         logging.info(f"Grounded information:\n{response.model_dump_json()}")
         return response
 
-    def _generate_queries_for_missing_info(self, grounded_info: T, max_queries: int) -> TavilyBatchSearchInput:
+    def _generate_queries_for_missing_info(self, company_name: str, grounded_info: T, max_queries: int) -> TavilyBatchSearchInput:
         """Generate queries for any missing information based on the grounded information."""
         
         prompt = f"""
-        You are an expert in generating search queries for missing information.
-        You are given a {self.get_info_type_description()} information about a company, where some fields are missing.
-        Your task is to generate search queries that their answers will fill the missing fields in the grounded information.
-        You should generate 0-{max_queries} queries.
-        
-        {grounded_info}
-        """
+You are an expert in generating search queries to fill in missing company {self.get_info_type_description()}.
+You are given partially complete information about a company. Your task is to generate search queries that will help retrieve the missing details.
+The company is: **{company_name}**
+Each query should be specific, relevant to the missing information, and explicitly include the company name. Avoid generic or broad queries.
+Generate up to {max_queries} queries.
+
+Grounded information:
+{grounded_info}
+"""
         
         response = self.llm.with_structured_output(TavilyBatchSearchInput).invoke([HumanMessage(content=prompt)])
         queries_list_str = ', '.join(response.queries)
