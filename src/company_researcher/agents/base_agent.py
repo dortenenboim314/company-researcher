@@ -65,7 +65,10 @@ class BaseAgent(ABC, Generic[T]):
         Returns:
             List of PageContent objects.
         """
-        raise NotImplementedError("Subclasses must implement get_site_content method.")
+        site_content = state.site_content
+        if not site_content:
+            logging.warning("No site content found in state for MarketPositionAgent")
+        return site_content
 
     @abstractmethod
     def get_state_field_name(self) -> str:
@@ -229,3 +232,12 @@ class BaseAgent(ABC, Generic[T]):
         """
         
         return self.llm.with_structured_output(self.output_type).invoke([HumanMessage(content=prompt)])
+    
+    def get_agent_name(self) -> str:
+        """
+        Get the name of the agent for logging and debugging purposes.
+        
+        Returns:
+            The class name of the agent.
+        """
+        return self.__class__.__name__

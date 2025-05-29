@@ -1,9 +1,8 @@
-from typing import Any, Dict, List, Type
+from typing import Any, Dict, List
 from langchain_openai import ChatOpenAI
 import logging
-from pydantic import BaseModel
 
-from company_researcher.agents.BaseAgent import BaseAgent
+from company_researcher.agents.base_agent import BaseAgent
 from company_researcher.api_clients.tavily_client import PageContent, TavilyClient
 from company_researcher.workflow.langgraph_workflow import ResearchState
 from company_researcher.workflow.states import CompanyBackground
