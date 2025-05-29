@@ -54,7 +54,6 @@ class BaseAgent(ABC, Generic[T]):
         """
         raise NotImplementedError("Subclasses must implement the run method.")
 
-    @abstractmethod
     async def get_site_content(self, state: ResearchState) -> List[PageContent]:
         """
         Get site content - either by crawling or from existing state.
