@@ -77,6 +77,20 @@ class MarketPosition(BaseModel):
         None, description="Approximate market share or position"
     )
 
+class FinalReport(BaseModel):
+    background_summary: Optional[str] = Field(
+        None, description="Summary of company background information"
+    )
+    financial_health_summary: Optional[str] = Field(
+        None, description="Summary of financial health data"
+    )
+    market_position_summary: Optional[str] = Field(
+        None, description="Summary of market position insights"
+    )
+    news_summary: Optional[str] = Field(
+        None, description="Summary of recent news items"
+    )
+    
 class ResearchState(BaseModel):
     company_name: str = Field(..., description="Full company name")
     company_url: str = Field(..., description="Official website URL")
@@ -97,8 +111,8 @@ class ResearchState(BaseModel):
     news: Optional[News] = Field(
         default=None, description="Structured recent news information"
     )
-    final_report: Optional[str] = Field(
-        None, description="Free-form consolidated report"
+    final_report: Optional[FinalReport] = Field(
+        None, description="Final research report summarizing all findings"
     )
     
     current_step: Optional[str] = Field(
