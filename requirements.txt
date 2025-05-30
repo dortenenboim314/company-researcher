@@ -1,0 +1,34 @@
+# Web Framework and API
+fastapi
+uvicorn[standard]
+
+# Data Validation and Models
+pydantic==2.5.0
+
+# LangChain and LLM Dependencies
+langchain-openai
+langchain-core
+langgraph
+
+# Search and API Clients
+tavily-python
+
+# Template Engine
+jinja2
+
+# Environment Management
+python-dotenv
+
+# ASGI and CORS
+python-multipart
+
+# Development and Testing
+pytest
+pytest-asyncio
+
+# Logging (enhanced logging capabilities)
+colorlog
+
+# Additional utilities that might be needed
+requests
+aiohttp

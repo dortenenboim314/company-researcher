@@ -1,6 +1,6 @@
 from datetime import date
 from typing import List, Optional
-from pydantic import AnyUrl, BaseModel, Field
+from pydantic import BaseModel, Field
 
 
 class ResearchQuery(BaseModel):
