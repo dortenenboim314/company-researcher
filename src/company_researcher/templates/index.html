@@ -1,578 +1,142 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Company Research</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 3rem;
-            color: white;
-        }
-
-        .header h1 {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .header p {
-            font-size: 1.2rem;
-            opacity: 0.9;
-        }
-
-        .search-card {
-            background: white;
-            border-radius: 16px;
-            padding: 2rem;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
-            backdrop-filter: blur(10px);
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: #374151;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 1rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background: #f9fafb;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .search-btn {
-            width: 100%;
-            padding: 1rem 2rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 1rem;
-        }
-
-        .search-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-        }
-
-        .search-btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 2rem;
-            color: white;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(255,255,255,0.3);
-            border-top: 4px solid white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .results {
-            display: none;
-        }
-
-        .results-card {
-            background: white;
-            border-radius: 16px;
-            padding: 2rem;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
-        }
-
-        .section-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 3px solid #667eea;
-        }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .info-item {
-            background: #f8fafc;
-            padding: 1.5rem;
-            border-radius: 12px;
-            border-left: 4px solid #667eea;
-        }
-
-        .info-item h4 {
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 0.5rem;
-        }
-
-        .info-item p, .info-item ul {
-            color: #6b7280;
-            line-height: 1.6;
-        }
-
-        .info-item ul {
-            padding-left: 1rem;
-        }
-
-        .news-item {
-            background: #f8fafc;
-            padding: 1.5rem;
-            border-radius: 12px;
-            margin-bottom: 1rem;
-            border-left: 4px solid #10b981;
-        }
-
-        .news-item h4 {
-            color: #1f2937;
-            margin-bottom: 0.5rem;
-        }
-
-        .news-item a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .news-item a:hover {
-            text-decoration: underline;
-        }
-
-        .news-date {
-            color: #9ca3af;
-            font-size: 0.9rem;
-            margin-top: 0.5rem;
-        }
-
-        .final-report {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 2rem;
-            border-radius: 16px;
-            margin-top: 2rem;
-        }
-
-        .final-report h3 {
-            margin-bottom: 1rem;
-            font-size: 1.8rem;
-        }
-
-        .report-section {
-            margin-bottom: 1.5rem;
-            padding: 1rem;
-            background: rgba(255,255,255,0.1);
-            border-radius: 8px;
-            backdrop-filter: blur(10px);
-        }
-
-        .report-section h4 {
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-        }
-
-        .error {
-            background: #fee2e2;
-            color: #dc2626;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-top: 1rem;
-            border-left: 4px solid #dc2626;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
-            
-            .search-card {
-                padding: 1.5rem;
-            }
-            
-            .info-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Company Research</title>
+  <!-- Tailwind CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Company Research</h1>
-            <p>Get comprehensive insights about any company</p>
-        </div>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
+  <div class="w-full max-w-4xl bg-white rounded-2xl shadow p-6">
+    <h1 class="text-2xl font-bold mb-4 text-gray-800">Company Research</h1>
+    <form id="research-form" class="space-y-4">
+      <div>
+        <label for="companyName" class="block text-gray-700 mb-1">Company Name</label>
+        <input id="companyName" type="text" required
+          class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"/>
+      </div>
+      <div>
+        <label for="companyUrl" class="block text-gray-700 mb-1">Company URL</label>
+        <input id="companyUrl" type="url" required
+          class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"/>
+      </div>
+      <button type="submit"
+        class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
+        Run Research
+      </button>
+    </form>
 
-        <div class="search-card">
-            <form id="researchForm">
-                <div class="form-group">
-                    <label for="companyName">Company Name</label>
-                    <input 
-                        type="text" 
-                        id="companyName" 
-                        name="company_name" 
-                        placeholder="e.g., Apple Inc."
-                        required
-                    >
-                </div>
-                <div class="form-group">
-                    <label for="companyUrl">Company Website</label>
-                    <input 
-                        type="url" 
-                        id="companyUrl" 
-                        name="company_url" 
-                        placeholder="e.g., https://www.apple.com"
-                        required
-                    >
-                </div>
-                <button type="submit" class="search-btn" id="searchBtn">
-                    Start Research
-                </button>
-            </form>
-        </div>
+    <p id="error" class="mt-4 text-red-600 hidden"></p>
+    <p id="loading" class="mt-4 text-gray-600 hidden">Loading...</p>
 
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p>Researching company... This may take a moment.</p>
-        </div>
+    <div id="final-report" class="mt-6 space-y-6"></div>
+    <div id="structured-report" class="mt-6 space-y-6"></div>
+  </div>
 
-        <div class="results" id="results"></div>
-    </div>
+  <script>
+    const form = document.getElementById('research-form');
+    const errorEl = document.getElementById('error');
+    const loadingEl = document.getElementById('loading');
+    const finalEl = document.getElementById('final-report');
+    const structuredEl = document.getElementById('structured-report');
 
-    <script>
-        const API_BASE_URL = 'http://localhost:8000'; // Change this to your actual API URL
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorEl.classList.add('hidden');
+      loadingEl.classList.remove('hidden');
+      finalEl.innerHTML = '';
+      structuredEl.innerHTML = '';
 
-        document.getElementById('researchForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(e.target);
-            const companyName = formData.get('company_name');
-            const companyUrl = formData.get('company_url');
-            
-            // Show loading state
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('results').style.display = 'none';
-            document.getElementById('searchBtn').disabled = true;
-            document.getElementById('searchBtn').textContent = 'Researching...';
-            
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/research?company_name=${encodeURIComponent(companyName)}&company_url=${encodeURIComponent(companyUrl)}`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                displayResults(data, companyName);
-                
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('results').innerHTML = `
-                    <div class="results-card">
-                        <div class="error">
-                            <strong>Error:</strong> Failed to fetch research data. Please check your API connection and try again.
-                        </div>
-                    </div>
-                `;
-                document.getElementById('results').style.display = 'block';
-            } finally {
-                // Hide loading state
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('searchBtn').disabled = false;
-                document.getElementById('searchBtn').textContent = 'Start Research';
-            }
-        });
+      const name = document.getElementById('companyName').value;
+      const url = document.getElementById('companyUrl').value;
 
-        function displayResults(data, companyName) {
-            const resultsDiv = document.getElementById('results');
-            let html = '';
+      try {
+        const res = await fetch(
+          `/api/research?company_name=${encodeURIComponent(name)}&company_url=${encodeURIComponent(url)}`
+        );
+        if (!res.ok) throw new Error(`Error ${res.status}`);
+        const data = await res.json();
 
-            // Company Background
-            if (data.background) {
-                html += `
-                    <div class="results-card">
-                        <h2 class="section-title">Company Background</h2>
-                        <div class="info-grid">
-                `;
-
-                if (data.background.industry) {
-                    html += `
-                        <div class="info-item">
-                            <h4>Industry</h4>
-                            <p>${data.background.industry}</p>
-                        </div>
-                    `;
-                }
-
-                if (data.background.founded) {
-                    html += `
-                        <div class="info-item">
-                            <h4>Founded</h4>
-                            <p>${data.background.founded.at ? new Date(data.background.founded.at).getFullYear() : 'N/A'}</p>
-                            ${data.background.founded.by ? `<p><strong>Founders:</strong> ${data.background.founded.by.join(', ')}</p>` : ''}
-                        </div>
-                    `;
-                }
-
-                if (data.background.description) {
-                    html += `
-                        <div class="info-item">
-                            <h4>Description</h4>
-                            <p>${data.background.description}</p>
-                        </div>
-                    `;
-                }
-
-                if (data.background.current_status) {
-                    html += `
-                        <div class="info-item">
-                            <h4>Current Status</h4>
-                            <p>${data.background.current_status}</p>
-                        </div>
-                    `;
-                }
-
-                html += `</div>`;
-
-                if (data.background.key_milestones && data.background.key_milestones.length > 0) {
-                    html += `
-                        <div class="info-item">
-                            <h4>Key Milestones</h4>
-                            <ul>
-                                ${data.background.key_milestones.map(milestone => `<li>${milestone}</li>`).join('')}
-                            </ul>
-                        </div>
-                    `;
-                }
-
-                html += `</div>`;
-            }
-
-            // Financial Health
-            if (data.financial_health) {
-                html += `
-                    <div class="results-card">
-                        <h2 class="section-title">Financial Health</h2>
-                        <div class="info-grid">
-                `;
-
-                if (data.financial_health.revenue) {
-                    html += `
-                        <div class="info-item">
-                            <h4>Annual Revenue</h4>
-                            <p>$${data.financial_health.revenue.toLocaleString()}</p>
-                        </div>
-                    `;
-                }
-
-                if (data.financial_health.burn_rate) {
-                    html += `
-                        <div class="info-item">
-                            <h4>Burn Rate</h4>
-                            <p>${data.financial_health.burn_rate}</p>
-                        </div>
-                    `;
-                }
-
-                if (data.financial_health.runway_months) {
-                    html += `
-                        <div class="info-item">
-                            <h4>Runway</h4>
-                            <p>${data.financial_health.runway_months} months</p>
-                        </div>
-                    `;
-                }
-
-                html += `</div>`;
-
-                if (data.financial_health.funding_rounds && data.financial_health.funding_rounds.length > 0) {
-                    html += `
-                        <div class="info-item">
-                            <h4>Funding Rounds</h4>
-                            <ul>
-                                ${data.financial_health.funding_rounds.map(round => `<li>${round}</li>`).join('')}
-                            </ul>
-                        </div>
-                    `;
-                }
-
-                html += `</div>`;
-            }
-
-            // Market Position
-            if (data.market_position) {
-                html += `
-                    <div class="results-card">
-                        <h2 class="section-title">Market Position</h2>
-                        <div class="info-grid">
-                `;
-
-                if (data.market_position.market_share) {
-                    html += `
-                        <div class="info-item">
-                            <h4>Market Share</h4>
-                            <p>${data.market_position.market_share}</p>
-                        </div>
-                    `;
-                }
-
-                html += `</div>`;
-
-                if (data.market_position.competitors && data.market_position.competitors.length > 0) {
-                    html += `
-                        <div class="info-item">
-                            <h4>Key Competitors</h4>
-                            <ul>
-                                ${data.market_position.competitors.map(competitor => `<li>${competitor}</li>`).join('')}
-                            </ul>
-                        </div>
-                    `;
-                }
-
-                if (data.market_position.unique_selling_points && data.market_position.unique_selling_points.length > 0) {
-                    html += `
-                        <div class="info-item">
-                            <h4>Unique Selling Points</h4>
-                            <ul>
-                                ${data.market_position.unique_selling_points.map(usp => `<li>${usp}</li>`).join('')}
-                            </ul>
-                        </div>
-                    `;
-                }
-
-                html += `</div>`;
-            }
-
-            // Recent News
-            if (data.news && data.news.recent_important_news && data.news.recent_important_news.length > 0) {
-                html += `
-                    <div class="results-card">
-                        <h2 class="section-title">Recent News</h2>
-                `;
-
-                data.news.recent_important_news.forEach(newsItem => {
-                    html += `
-                        <div class="news-item">
-                            <h4><a href="${newsItem.url}" target="_blank">${newsItem.title}</a></h4>
-                            ${newsItem.date_published ? `<div class="news-date">${new Date(newsItem.date_published).toLocaleDateString()}</div>` : ''}
-                        </div>
-                    `;
-                });
-
-                html += `</div>`;
-            }
-
-            // Final Report
-            if (data.final_report) {
-                html += `
-                    <div class="final-report">
-                        <h3>Executive Summary</h3>
-                `;
-
-                if (data.final_report.background_summary) {
-                    html += `
-                        <div class="report-section">
-                            <h4>Background</h4>
-                            <p>${data.final_report.background_summary}</p>
-                        </div>
-                    `;
-                }
-
-                if (data.final_report.financial_health_summary) {
-                    html += `
-                        <div class="report-section">
-                            <h4>Financial Health</h4>
-                            <p>${data.final_report.financial_health_summary}</p>
-                        </div>
-                    `;
-                }
-
-                if (data.final_report.market_position_summary) {
-                    html += `
-                        <div class="report-section">
-                            <h4>Market Position</h4>
-                            <p>${data.final_report.market_position_summary}</p>
-                        </div>
-                    `;
-                }
-
-                if (data.final_report.news_summary) {
-                    html += `
-                        <div class="report-section">
-                            <h4>Recent Developments</h4>
-                            <p>${data.final_report.news_summary}</p>
-                        </div>
-                    `;
-                }
-
-                html += `</div>`;
-            }
-
-            resultsDiv.innerHTML = html;
-            resultsDiv.style.display = 'block';
+        // Final report
+        if (data.final_report) {
+          const fr = data.final_report;
+          ['background_summary','financial_health_summary','market_position_summary','news_summary']
+            .forEach(key => {
+              if (fr[key]) {
+                const section = document.createElement('div');
+                const title = key.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
+                section.innerHTML = `<h2 class="font-semibold text-lg">${title}</h2><p class="text-gray-700">${fr[key]}</p>`;
+                finalEl.appendChild(section);
+              }
+            });
         }
-    </script>
+
+        // Structured report
+        if (data.background) {
+          const bg = data.background;
+          const ul = document.createElement('ul'); ul.className = 'list-disc list-inside text-gray-700';
+          if (bg.industry) ul.innerHTML += `<li><strong>Industry:</strong> ${bg.industry}</li>`;
+          if (bg.founded?.at) ul.innerHTML += `<li><strong>Founded:</strong> ${new Date(bg.founded.at).toLocaleDateString()}</li>`;
+          if (bg.founded?.by) ul.innerHTML += `<li><strong>Founders:</strong> ${bg.founded.by.join(', ')}</li>`;
+          if (bg.description) ul.innerHTML += `<li><strong>Description:</strong> ${bg.description}</li>`;
+          if (bg.key_milestones) ul.innerHTML += `<li><strong>Milestones:</strong> ${bg.key_milestones.join('; ')}</li>`;
+          if (bg.current_status) ul.innerHTML += `<li><strong>Current Status:</strong> ${bg.current_status}</li>`;
+          const headerBg = document.createElement('h2');
+          headerBg.textContent = 'Structured Background';
+          headerBg.className = 'font-semibold text-lg';
+          structuredEl.appendChild(headerBg);
+          structuredEl.appendChild(ul);
+        }
+
+        if (data.financial_health) {
+          const fh = data.financial_health;
+          const ul = document.createElement('ul'); ul.className = 'list-disc list-inside text-gray-700';
+          if (fh.revenue != null) ul.innerHTML += `<li><strong>Revenue:</strong> ${fh.revenue.toLocaleString()}</li>`;
+          if (fh.funding_rounds) ul.innerHTML += `<li><strong>Funding Rounds:</strong> ${fh.funding_rounds.join('; ')}</li>`;
+          if (fh.burn_rate) ul.innerHTML += `<li><strong>Burn Rate:</strong> ${fh.burn_rate}</li>`;
+          if (fh.runway_months != null) ul.innerHTML += `<li><strong>Runway:</strong> ${fh.runway_months} months</li>`;
+          const headerFh = document.createElement('h2');
+          headerFh.textContent = 'Structured Financial Health';
+          headerFh.className = 'font-semibold text-lg';
+          structuredEl.appendChild(headerFh);
+          structuredEl.appendChild(ul);
+        }
+
+        if (data.market_position) {
+          const mp = data.market_position;
+          const ul = document.createElement('ul'); ul.className = 'list-disc list-inside text-gray-700';
+          if (mp.competitors) ul.innerHTML += `<li><strong>Competitors:</strong> ${mp.competitors.join(', ')}</li>`;
+          if (mp.unique_selling_points) ul.innerHTML += `<li><strong>Unique Selling Points:</strong> ${mp.unique_selling_points.join('; ')}</li>`;
+          if (mp.market_share) ul.innerHTML += `<li><strong>Market Share:</strong> ${mp.market_share}</li>`;
+          const headerMp = document.createElement('h2');
+          headerMp.textContent = 'Structured Market Position';
+          headerMp.className = 'font-semibold text-lg';
+          structuredEl.appendChild(headerMp);
+          structuredEl.appendChild(ul);
+        }
+
+        if (data.news?.recent_important_news) {
+          const items = data.news.recent_important_news;
+          const ul = document.createElement('ul'); ul.className = 'list-disc list-inside text-gray-700';
+          items.forEach(item => {
+            ul.innerHTML += `<li><a href="${item.url}" target="_blank" class="underline">${item.title}</a>${item.date_published ? ' — ' + new Date(item.date_published).toLocaleDateString() : ''}</li>`;
+          });
+          const headerNews = document.createElement('h2');
+          headerNews.textContent = 'Structured News';
+          headerNews.className = 'font-semibold text-lg';
+          structuredEl.appendChild(headerNews);
+          structuredEl.appendChild(ul);
+        }
+
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.classList.remove('hidden');
+      } finally {
+        loadingEl.classList.add('hidden');
+      }
+    });
+  </script>
 </body>
 </html>
