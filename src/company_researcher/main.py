@@ -1,19 +1,21 @@
 from fastapi import Depends, FastAPI
-from pydantic import BaseModel
 import logging
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 import os
 from fastapi import Request 
 from fastapi.middleware.cors import CORSMiddleware
-
+from company_researcher.converters import research_state_to_response
+from company_researcher.core.research_manager import ResearchManager
 from company_researcher.models.models import ResearchQuery, ResearchResponse
-from company_researcher.mock import mock_research_response
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = FastAPI()
-
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
 # Mount static files
 app.mount(
     "/static",
@@ -44,9 +46,18 @@ templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
+config = {
+    "llm_model": "gpt-4.1",
+    "tavily_api_key": os.getenv("TAVILY_API_KEY"),
+    "openai_api_key": os.getenv("OPENAI_API_KEY"),
+}
+researcher = ResearchManager(config=config)
 
 @app.get("/api/research", response_model=ResearchResponse)
-def get_research(query: ResearchQuery = Depends()):
+async def get_research(query: ResearchQuery = Depends()):
     logging.info(f"Received request for company: {query.company_name}, URL: {query.company_url}")
-    
-    return mock_research_response()
+    res = await researcher.perfrom_research(
+        company_name=query.company_name,
+        company_url=query.company_url
+    )
+    return research_state_to_response(res)

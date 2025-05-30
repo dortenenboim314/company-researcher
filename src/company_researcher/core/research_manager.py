@@ -5,14 +5,16 @@ from company_researcher.core.api_clients.tavily_client import TavilyClient
 from company_researcher.core.utils.llm_wrapper import LLMLoggingWrapper
 from company_researcher.workflow.states import InputState, ResearchState
 from langgraph.graph import StateGraph, END
+import logging
 
 class ResearchManager:
     def __init__(self, config: dict):
         self.llm = LLMLoggingWrapper(ChatOpenAI(
             model=config['llm_model'], 
+            api_key=config.get('openai_api_key'),
             temperature=0,
         ))
-        self.tavily_client = TavilyClient()
+        self.tavily_client = TavilyClient(api_key=config.get('tavily_api_key'))
         self.background_agent = BackgroundAgent(llm=self.llm, tavily_client=self.tavily_client, config=config)
         self.financial_agent = FinancialHealthAgent(llm=self.llm, tavily_client=self.tavily_client, config=config)
         self.market_position_agent = MarketPositionAgent(llm=self.llm, tavily_client=self.tavily_client, config=config)
@@ -20,7 +22,15 @@ class ResearchManager:
         
         self.graph = self._init_graph()
         
-    async def perfrom_research(self, research_input: ResearchState) -> ResearchState:
+    async def perfrom_research(self, company_name: str, company_url: str) -> ResearchState:
+        logging.info(f"Starting research for company: {company_name}, URL: {company_url}")
+        
+        research_input = ResearchState(
+            company_name=company_name,
+            company_url=company_url,
+            current_step="starting",
+            errors=[]
+        )
         result = await self.graph.ainvoke(research_input)
         result = ResearchState(**result)
         return result

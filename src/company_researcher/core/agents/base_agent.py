@@ -217,6 +217,11 @@ Grounded information:
     def _process_data(self, grounded_info: T, search_output: List[SearchResponse]) -> T:
         """Process the grounded information and search output to create a comprehensive report."""
         
+        logging.info("Processing grounded information and search results to fill missing fields.")
+        logging.info(f"Grounded information:\n{grounded_info.model_dump_json(exclude_unset=True)}")
+        logging.info(f"Search results count: {len(search_output)}")
+        logging.info(f"Search results:\n{[result.model_dump_json(exclude_unset=True) for result in search_output]}")
+        
         prompt = f"""
         You are an expert generating reliable {self.get_info_type_description()} information about a company.
         Given:
