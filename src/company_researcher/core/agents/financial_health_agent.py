@@ -2,14 +2,14 @@ from typing import Any, Dict, List
 from langchain_openai import ChatOpenAI
 import logging
 
-from company_researcher.agents.base_agent import BaseAgent
-from company_researcher.api_clients.tavily_client import PageContent, TavilyClient
+from company_researcher.core.agents.base_agent import BaseAgent
+from company_researcher.core.api_clients.tavily_client import PageContent, TavilyClient
 from company_researcher.workflow.langgraph_workflow import ResearchState
-from company_researcher.workflow.states import MarketPosition
+from company_researcher.workflow.states import FinancialHealth
 
-class MarketPositionAgent(BaseAgent[MarketPosition]):
+class FinancialHealthAgent(BaseAgent[FinancialHealth]):
     """
-    Agent that gathers and analyzes market position information for a company.
+    Agent that gathers and analyzes financial health information for a company.
     Inherits core behavior from BaseAgent.
     """
 
@@ -19,7 +19,7 @@ class MarketPositionAgent(BaseAgent[MarketPosition]):
         tavily_client: TavilyClient,
         config: Dict[str, Any]
     ):
-        super().__init__(MarketPosition, llm, tavily_client, config)
+        super().__init__(FinancialHealth, llm, tavily_client, config)
         
     async def run(self, state: ResearchState) -> ResearchState:
         """
@@ -30,12 +30,12 @@ class MarketPositionAgent(BaseAgent[MarketPosition]):
 
     def get_state_field_name(self) -> str:
         """
-        Returns the field name for market position information in the state.
+        Returns the field name for financial health information in the state.
         """
-        return "market_position"
+        return "financial_health"
 
     def get_info_type_description(self) -> str:
         """
         Returns description for use in prompts.
         """
-        return "market position"
+        return "financial health"

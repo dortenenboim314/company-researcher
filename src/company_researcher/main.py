@@ -7,6 +7,8 @@ import os
 from fastapi import Request 
 from fastapi.middleware.cors import CORSMiddleware
 
+from company_researcher.models.models import ResearchQuery, ResearchResponse
+from company_researcher.mock import mock_research_response
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -36,29 +38,15 @@ app.add_middleware(
 )
 
 
-class ResearchResponse(BaseModel):
-    company_background: str
-    financial_health: str
-    market_position: str
-    news: str
-
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
 @app.get("/")
 async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-class ResearchQuery(BaseModel):
-    company_name: str
-    company_url: str
 
 @app.get("/api/research", response_model=ResearchResponse)
 def get_research(query: ResearchQuery = Depends()):
     logging.info(f"Received request for company: {query.company_name}, URL: {query.company_url}")
     
-    return ResearchResponse(
-        company_background="Mocked company background information.",
-        financial_health="Mocked financial health data.",
-        market_position="Mocked market position insights.",
-        news="Mocked latest news articles."
-    )
+    return mock_research_response()

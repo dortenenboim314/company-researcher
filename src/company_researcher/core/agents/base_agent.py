@@ -5,7 +5,7 @@ from langchain_core.messages import HumanMessage
 import logging
 from pydantic import BaseModel
 
-from company_researcher.api_clients.tavily_client import PageContent, SearchResponse, TavilyBatchSearchInput, TavilyClient
+from company_researcher.core.api_clients.tavily_client import PageContent, SearchResponse, TavilyBatchSearchInput, TavilyClient
 from company_researcher.workflow.langgraph_workflow import ResearchState
 
 T = TypeVar('T', bound=BaseModel)

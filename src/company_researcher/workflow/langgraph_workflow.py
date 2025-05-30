@@ -1,4 +1,3 @@
-import os
 
 from company_researcher.utils.llm_wrapper import LLMLoggingWrapper
 from company_researcher.api_clients.tavily_client import TavilyClient
@@ -8,16 +7,8 @@ from langgraph.graph import StateGraph, END
 from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI  # or use ChatAnthropic, etc.
 from datetime import datetime
-from dotenv import load_dotenv
 
 from company_researcher.workflow.states import ResearchState
-
-
-load_dotenv()
-OPEN_AI_API_KEY = os.getenv("OPENAI_API_KEY")
-TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
-print("🔑 Using OpenAI API Key:", OPEN_AI_API_KEY)
-print("🔑 Using Tavily API Key:", TAVILY_API_KEY)
 
 # Initialize the LLM (you can change this to your preferred model)
 llm = LLMLoggingWrapper(ChatOpenAI(

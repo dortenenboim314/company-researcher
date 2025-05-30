@@ -1,15 +1,12 @@
-# src/company_researcher/models.py
-
 from datetime import date
 from typing import List, Optional
-from pydantic import BaseModel, AnyUrl, Field
-
-from company_researcher.core.api_clients.tavily_client import PageContent
+from pydantic import AnyUrl, BaseModel, Field
 
 
-class InputState(BaseModel):
-    company_name: str = Field(..., description="Full name of the company")
-    company_url: AnyUrl = Field(..., description="Official website URL of the company")
+class ResearchQuery(BaseModel):
+    company_name: str
+    company_url: str
+
     
 class NewsItem(BaseModel):
     title: str = Field(..., description="Headline of the news item")
@@ -91,13 +88,8 @@ class FinalReport(BaseModel):
         None, description="Summary of recent news items"
     )
     
-class ResearchState(BaseModel):
-    company_name: str = Field(..., description="Full company name")
-    company_url: str = Field(..., description="Official website URL")
-    site_content: Optional[list[PageContent]] = Field(
-        default=None, description="Crawled site content"
-    )
-    
+
+class ResearchResponse(BaseModel):
     background: Optional[CompanyBackground] = Field(
         None, description="Structured background information"
     )
@@ -113,11 +105,4 @@ class ResearchState(BaseModel):
     )
     final_report: Optional[FinalReport] = Field(
         None, description="Final research report summarizing all findings"
-    )
-    
-    current_step: Optional[str] = Field(
-        None, description="Which agent/step is running now"
-    )
-    errors: Optional[List[str]] = Field(
-        default_factory=list, description="Any errors encountered"
     )

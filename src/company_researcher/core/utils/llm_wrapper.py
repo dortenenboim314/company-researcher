@@ -1,4 +1,3 @@
-from typing import Any
 import functools
 import inspect
 import logging

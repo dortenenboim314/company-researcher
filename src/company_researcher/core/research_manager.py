@@ -1,8 +1,8 @@
 
 from langchain_openai import ChatOpenAI
-from company_researcher.agents import BackgroundAgent, FinancialHealthAgent, MarketPositionAgent, NewsAgent
-from company_researcher.api_clients.tavily_client import TavilyClient
-from company_researcher.utils.llm_wrapper import LLMLoggingWrapper
+from company_researcher.core.agents import BackgroundAgent, FinancialHealthAgent, MarketPositionAgent, NewsAgent
+from company_researcher.core.api_clients.tavily_client import TavilyClient
+from company_researcher.core.utils.llm_wrapper import LLMLoggingWrapper
 from company_researcher.workflow.states import InputState, ResearchState
 from langgraph.graph import StateGraph, END
 

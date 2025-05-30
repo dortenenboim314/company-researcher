@@ -6,13 +6,10 @@ import asyncio
 import os
 from pydantic import BaseModel, Field
 from typing import List, Optional
-from dotenv import load_dotenv
 from tavily import AsyncTavilyClient
 import logging
 import re
 
-# Load environment variables
-load_dotenv()
 
 class TavilyBatchSearchInput(BaseModel):
     queries: List[str] = Field(description="List of search queries to perform.")
