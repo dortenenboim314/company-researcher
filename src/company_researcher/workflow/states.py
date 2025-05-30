@@ -14,10 +14,10 @@ class InputState(BaseModel):
 class NewsItem(BaseModel):
     title: str = Field(..., description="Headline of the news item")
     url: str = Field(..., description="Link to the news article")
-    date_published: Optional[date] = Field(None, description="Publication date")
+    date_published: Optional[str] = Field(None, description="Publication date in ISO format YYYY-MM-DD", example="2023-10-17")
     
 class Founded(BaseModel):
-    at: Optional[date] = Field(None, description="Founding date of the company", example="2020-10-15")
+    at: Optional[str] = Field(None, description="Founding date of the company in ISO format YYYY-MM-DD", example="2020-10-15")
     by: Optional[List[str]] = Field(
         None, description="Names of the founders", examples=["Alice Smith", "Bob Johnson"]
     )
