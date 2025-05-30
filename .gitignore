@@ -9,6 +9,9 @@ yarn-error.log*
 .env.local
 .env.*.local
 
+.venv
+*.pyc
+
 # Build output
 dist/
 build/
