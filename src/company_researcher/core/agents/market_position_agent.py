@@ -1,9 +1,8 @@
-from typing import Any, Dict, List
+from typing import Any, Dict
 from langchain_openai import ChatOpenAI
-import logging
 
 from company_researcher.core.agents.base_agent import BaseAgent
-from company_researcher.core.api_clients.tavily_client import PageContent, TavilyClient
+from company_researcher.core.api_clients.tavily_client import TavilyClient
 from company_researcher.workflow.langgraph_workflow import ResearchState
 from company_researcher.workflow.states import MarketPosition
 
