@@ -34,6 +34,10 @@ class CompanyBackground(BaseModel):
     current_status: Optional[str] = Field(
         None, description="Brief statement of where the company stands today"
     )
+    number_of_emplyees: Optional[str] = Field(
+        None, description="Range of number of employees",
+        example="51-200"
+    )
 
 class News(BaseModel):
     recent_important_news: Optional[List[NewsItem]] = Field(
@@ -43,7 +47,7 @@ class News(BaseModel):
 class FinancialHealth(BaseModel):
     revenue: Optional[float] = Field(
         None,
-        description="Latest annual revenue",
+        description="Latest annual revenue, in USD",
         example=1_000_000.0
     )
     funding_rounds: Optional[List[str]] = Field(
@@ -90,7 +94,7 @@ class FinalReport(BaseModel):
     news_summary: Optional[str] = Field(
         None, description="Summary of recent news items"
     )
-    
+
 class ResearchState(BaseModel):
     company_name: str = Field(..., description="Full company name")
     company_url: str = Field(..., description="Official website URL")

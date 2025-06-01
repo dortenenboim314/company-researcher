@@ -201,7 +201,7 @@ class BaseAgent(ABC, Generic[T]):
         prompt = f"""
 You are an expert in generating search queries to fill in missing company {self.get_info_type_description()}.
 You are given partially complete information about a company. Your task is to generate search queries that will help retrieve the missing details.
-The company is: **{company_name}**
+The company is: {company_name}.
 Each query should be specific, relevant to the missing information, and explicitly include the company name. Avoid generic or broad queries.
 Generate up to {max_queries} queries.
 

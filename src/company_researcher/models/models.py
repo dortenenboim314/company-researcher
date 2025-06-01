@@ -31,6 +31,10 @@ class CompanyBackground(BaseModel):
     current_status: Optional[str] = Field(
         None, description="Brief statement of where the company stands today"
     )
+    number_of_emplyees: Optional[str] = Field(
+        None, description="Range of number of employees",
+        example="51-200"
+    )
 
 class News(BaseModel):
     recent_important_news: Optional[List[NewsItem]] = Field(
