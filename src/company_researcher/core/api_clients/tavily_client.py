@@ -35,6 +35,23 @@ class SearchResponse(BaseModel):
     answer: Optional[str] = Field(default=None, description="The answer to the search query.")
     candidates: List[ResultCandidate] = Field(alias="results",description="List of search results.")
     
+    def to_string(self, top_k_candidates: int = 3) -> str:
+        info = []
+        if self.query:
+            info.append(f"Query: {self.query}")
+        if self.answer:
+            info.append(f"Snippet: {self.answer}")
+        if self.candidates:
+            info.append("Results:")
+            for result in sorted(self.candidates, key=lambda x: x.score, reverse=True)[:top_k_candidates]:
+                info.append(f"- {result.title} ({result.url})")
+                if result.content:
+                    info.append(f"  Snippet: {result.content}")
+                if result.score:
+                        info.append(f"  Score: {result.score:.2f}")
+            
+        return '\n'.join(info)
+
     class Config:
         allow_population_by_field_name = True
 
@@ -98,7 +115,7 @@ class TavilyClient:
         logging.info(f"Starting search for {len(batch_search_input.queries)} queries.")
         
         results = await asyncio.gather(
-            *[self.async_client.search(query=query) for query in batch_search_input.queries]
+            *[self.async_client.search(query=query, include_answer=True) for query in batch_search_input.queries]
         )
         
         logging.info(f"Search completed, got {len(results)} results.")

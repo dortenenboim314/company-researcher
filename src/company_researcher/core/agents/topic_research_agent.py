@@ -1,5 +1,4 @@
-
-from typing import TypedDict
+from typing import Annotated, TypedDict
 from langchain_openai import ChatOpenAI
 from company_researcher.core.agents import BackgroundAgent, FinancialHealthAgent, MarketPositionAgent, NewsAgent
 from company_researcher.core.api_clients.tavily_client import TavilyBatchSearchInput, TavilyClient
@@ -7,13 +6,16 @@ from company_researcher.core.utils.llm_wrapper import LLMLoggingWrapper
 from langgraph.graph import StateGraph, END, START
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langgraph.graph import MessagesState
-
+import asyncio
+from dataclasses import dataclass
+from langchain_core.messages import AnyMessage
+from langgraph.graph.message import add_messages
 
 class TopicResearchInput(TypedDict):
     company_name: str
     company_background: str
 
-class TopicResearchOutput(TypedDict):
+class TopicResearchOutput(MessagesState):
     result: str
     
 class TopicResearchState(MessagesState):
@@ -56,7 +58,7 @@ class TopicResearchAgent:
         self.graph.add_edge("search_web_and_answer", "ask_question")
         self.graph.add_edge("summarize_results", END)
         
-    def summarize_results(self, state: TopicResearchState) -> TopicResearchState:
+    async def summarize_results(self, state: TopicResearchState) -> TopicResearchState:
         """Summarize the results of the research.
 
         Args:
@@ -68,7 +70,7 @@ class TopicResearchAgent:
         # This should be replaced with the actual logic to summarize the results
         prompt_for_summarizing_results = "" # should be implemented, basically telling the LLM to summarize the conversation between the user and the Interviewer into a concise, reliable summary. do not add any additional information, just make a report of the topic research etc..
         
-        summary = self.llm.invoke([SystemMessage(content=prompt_for_summarizing_results)] + state.messages)
+        summary = await self.llm.ainvoke([SystemMessage(content=prompt_for_summarizing_results)] + state["messages"])
         
         return {"result": summary.content}
         
@@ -82,13 +84,13 @@ class TopicResearchAgent:
             str: The next step in the workflow, either "search_web" or "summarize_results".
         """
         # count the number of messages sent by the expert
-        expert_messages = [msg for msg in state.messages if msg.name == "Expert"]
+        expert_messages = [msg for msg in state["messages"] if msg.name == "Expert"]
         if len(expert_messages) >= self.max_steps:
             return "summarize_results"
         else:
-            return "search_web"
+            return "search_web_and_answer"
 
-    def ask_question(self, state: TopicResearchState) -> TopicResearchState:
+    async def ask_question(self, state: TopicResearchState) -> TopicResearchState:
         """Prompt an LLM to be a researcher and to ask questions regarding the topic.
 
         Args:
@@ -97,13 +99,19 @@ class TopicResearchAgent:
         Returns:
             TopicResearchState: _description_
         """
-        prompt_for_researcher = "" # This should be replaced with the actual logic to generate a question based on the topic
-        messages = state.messages
+        print(state)
+        prompt_for_researcher = f"""You are an Interviewer tasked with asking an expert questions about {state["company_name"]}'s {self.topic_name}.
+Where {self.topic_name} is defined as: {self.topic_description}.
+You are also given the following background information about the company:
+{state["company_background"]}
+
+Your goal is to gather detailed information about {state["company_name"]}'s {self.topic_name} only by asking the expert relevant questions."""
+        messages = state["messages"]
         
-        question = self.llm.invoke([SystemMessage(content=prompt_for_researcher)] + messages)
+        question = await self.llm.ainvoke([SystemMessage(content=prompt_for_researcher)] + messages)
         question.name = "Interviewer"
         
-        return {"messagess": [question]}
+        return {"messages": [question]}
     
     async def search_web_and_answer(self, state: TopicResearchState) -> TopicResearchState:
         """Search the web for information related to the topic.
@@ -116,25 +124,36 @@ class TopicResearchAgent:
         """
         # This should be replaced with the actual logic to search the web
         
-        prompt_asking_for_search_queries = "" # should be implemented
-        
-        search_queries = self.llm.with_structured_output(TavilyBatchSearchInput).invoke(prompt_asking_for_search_queries)
-        tavily_responses = await self.tavily_client.search(search_queries)
-        
-        search_results = []
-        for response in tavily_responses:
-            info = []
-            if response.query:
-                info.append(f"Query: {response.query}")
-            if response.answer:
-                info.append(f"Snippet: {response.answer}")
-            search_results.append('\n'.join(info))
+        prompt_asking_for_search_queries = f"""You will be given a conversation between an interviewer and an expert.
+        The Interview is about {state["company_name"]}'s {self.topic_name}, which is defined as: {self.topic_description}.
+        You are also given the following background information about the company:
+{state["company_background"]}
 
-        prompt_for_asking_to_answer_questions_based_on_search_results = ""  # should be implemented, of course we should inject the search results into the prompt
+Your goal is to generate a well-structured search queries.
+The queries should be based on the final message of the interviewer.
+Each query should be precise. Sometimes it might be useful to break down complex questions into simpler, more focused search queries."""
+
+        search_queries = await self.llm.with_structured_output(TavilyBatchSearchInput).ainvoke(prompt_asking_for_search_queries)
         
-        messages = [SystemMessage(content=prompt_for_asking_to_answer_questions_based_on_search_results)] + state.messages
+        # TODO - async all the way, make the graph async
+        tavily_responses = await self.tavily_client.search(search_queries)
+
+        search_results = "\n########\n".join([res.to_string() for res in tavily_responses])
+        print(f"Search results: {search_results}")
+        if not search_results:
+            raise ValueError("No search results found. Please try again with different queries.")
+
+        prompt_for_asking_to_answer_questions_based_on_search_results = f"""You will be given a conversation between an interviewer and an expert.
+The Interview is about {state["company_name"]}'s {self.topic_name}, which is defined as: {self.topic_description}.
+You are also given the following background information about the company:
+{state["company_background"]}
+
+Your answer should be based only on the search results provided below. Do not add any additional information.
+Here are the search results:
+{search_results}"""
+        messages = [SystemMessage(content=prompt_for_asking_to_answer_questions_based_on_search_results)] + state["messages"]
         
-        answer = self.llm.invoke(messages)
+        answer = await self.llm.ainvoke(messages)
         answer.name = "Expert" 
         
         return {"messages": [answer]}
