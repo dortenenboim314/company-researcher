@@ -10,18 +10,20 @@ import asyncio
 from dataclasses import dataclass
 from langchain_core.messages import AnyMessage
 from langgraph.graph.message import add_messages
+import logging
 
 class TopicResearchInput(TypedDict):
     company_name: str
     company_background: str
 
-class TopicResearchOutput(MessagesState):
-    result: str
+class TopicResearchOutput(TypedDict):
+    results: list
+    internal_messages: list
     
 class TopicResearchState(MessagesState):
     company_name: str
     company_background: str
-    result: str
+    results: list
     
     
 class TopicResearchAgent:
@@ -49,16 +51,24 @@ class TopicResearchAgent:
                                 input=TopicResearchInput,
                                 output=TopicResearchOutput)
         
-        self.graph.add_node("ask_question", self.ask_question)
-        self.graph.add_node("search_web_and_answer", self.search_web_and_answer)
-        self.graph.add_node("summarize_results", self.summarize_results)
+        self.graph.add_node("ask_question", self._ask_question)
+        self.graph.add_node("search_web_and_answer", self._search_web_and_answer)
+        self.graph.add_node("summarize_results", self._summarize_results)
         
         self.graph.add_edge(START, "ask_question")
         self.graph.add_conditional_edges("ask_question", self.route_to_search_or_summarize, ["search_web_and_answer", "summarize_results"])
         self.graph.add_edge("search_web_and_answer", "ask_question")
         self.graph.add_edge("summarize_results", END)
         
-    async def summarize_results(self, state: TopicResearchState) -> TopicResearchState:
+    def compile(self) -> StateGraph:
+        """Compile the state graph for the agent.
+
+        Returns:
+            StateGraph: The compiled state graph.
+        """
+        return self.graph.compile()
+        
+    async def _summarize_results(self, state: TopicResearchState) -> TopicResearchState:
         """Summarize the results of the research.
 
         Args:
@@ -71,8 +81,8 @@ class TopicResearchAgent:
         prompt_for_summarizing_results = "" # should be implemented, basically telling the LLM to summarize the conversation between the user and the Interviewer into a concise, reliable summary. do not add any additional information, just make a report of the topic research etc..
         
         summary = await self.llm.ainvoke([SystemMessage(content=prompt_for_summarizing_results)] + state["messages"])
-        
-        return {"result": summary.content}
+        summary.name = self.topic_name + " Researcher"
+        return {"results": [summary]}
         
     def route_to_search_or_summarize(self, state: TopicResearchState) -> str:
         """Decide whether to search the web or summarize based on the current state.
@@ -85,12 +95,17 @@ class TopicResearchAgent:
         """
         # count the number of messages sent by the expert
         expert_messages = [msg for msg in state["messages"] if msg.name == "Expert"]
+        last_interviewer_message = state["messages"][-1].content if state["messages"] else None
         if len(expert_messages) >= self.max_steps:
+            logging.info(f"Maximum steps reached for {self.topic_name} research. Summarizing results.")
+            return "summarize_results"
+        elif "thank" in last_interviewer_message.lower():
+            logging.info(f"Interviewer asked to finish the interview.")
             return "summarize_results"
         else:
             return "search_web_and_answer"
 
-    async def ask_question(self, state: TopicResearchState) -> TopicResearchState:
+    async def _ask_question(self, state: TopicResearchState) -> TopicResearchState:
         """Prompt an LLM to be a researcher and to ask questions regarding the topic.
 
         Args:
@@ -105,7 +120,8 @@ Where {self.topic_name} is defined as: {self.topic_description}.
 You are also given the following background information about the company:
 {state["company_background"]}
 
-Your goal is to gather detailed information about {state["company_name"]}'s {self.topic_name} only by asking the expert relevant questions."""
+Your goal is to gather detailed information about {state["company_name"]}'s {self.topic_name} only by asking the expert relevant questions.
+In case you think you already have enough information, you should finish the interview by saying exactly "Thank you" and nothing else."""
         messages = state["messages"]
         
         question = await self.llm.ainvoke([SystemMessage(content=prompt_for_researcher)] + messages)
@@ -113,7 +129,7 @@ Your goal is to gather detailed information about {state["company_name"]}'s {sel
         
         return {"messages": [question]}
     
-    async def search_web_and_answer(self, state: TopicResearchState) -> TopicResearchState:
+    async def _search_web_and_answer(self, state: TopicResearchState) -> TopicResearchState:
         """Search the web for information related to the topic.
 
         Args:

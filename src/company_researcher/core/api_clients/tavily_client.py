@@ -18,6 +18,9 @@ class PageContent(BaseModel):
     url: str = Field(description="The URL to crawl.")
     raw_content: str = Field(description="The content of the page to be crawled.")
     
+    def to_string(self) -> str:
+        return f"URL: {self.url}\nRaw Content: {self.raw_content}"
+    
     class Config:
         allow_population_by_field_name = True
         
@@ -100,8 +103,8 @@ class TavilyClient:
 
         logging.info(f"Extracted {len(pages)} pages from crawl.")
         return pages
-        
-    async def search(self, batch_search_input: TavilyBatchSearchInput) -> List[SearchResponse]:
+
+    async def search(self, batch_search_input: TavilyBatchSearchInput, **kwargs) -> List[SearchResponse]:
         """
         Perform a web search using Tavily API.
         
@@ -115,7 +118,7 @@ class TavilyClient:
         logging.info(f"Starting search for {len(batch_search_input.queries)} queries.")
         
         results = await asyncio.gather(
-            *[self.async_client.search(query=query, include_answer=True) for query in batch_search_input.queries]
+            *[self.async_client.search(query=query, include_answer=True, **kwargs) for query in batch_search_input.queries]
         )
         
         logging.info(f"Search completed, got {len(results)} results.")

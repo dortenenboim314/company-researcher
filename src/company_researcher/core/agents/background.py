@@ -9,15 +9,16 @@ class BackgroundInput(TypedDict):
     company_name: str
     company_url: str
 
-class BackgroundOutput(MessagesState):
-    result: str
+class BackgroundOutput(TypedDict):
+    company_background: str
+    internal_messages: list
     
 class BackgroundResearchState(MessagesState):
     company_name: str
     company_url: str
-    result: str
-    
-    
+    company_background: str
+
+
 class BackgroundAgent:
     def __init__(self,
                  llm:ChatOpenAI,
@@ -30,19 +31,27 @@ class BackgroundAgent:
                                 input=BackgroundInput,
                                 output=BackgroundOutput)
         
-        self.graph.add_node("crawl_and_gather_background", self.crawl_and_gather_background)
-        self.graph.add_node("search_and_answer", self.search_and_answer)
-        self.graph.add_node("review", self.review)
-        self.graph.add_node("summarize", self.summarize)
-        
+        self.graph.add_node("crawl_and_gather_background", self._crawl_and_gather_background)
+        self.graph.add_node("search_and_answer", self._search_and_answer)
+        self.graph.add_node("review", self._review)
+        self.graph.add_node("summarize", self._summarize)
+
         # start -> crawl_and_gather_background -> review -> search_and_answer -> summarize -> end
         self.graph.add_edge(START, "crawl_and_gather_background")
         self.graph.add_edge("crawl_and_gather_background", "review")
         self.graph.add_edge("review", "search_and_answer")
         self.graph.add_edge("search_and_answer", "summarize")
         self.graph.add_edge("summarize", END)
-        
-    async def crawl_and_gather_background(self, state: BackgroundResearchState) -> BackgroundResearchState:
+    
+    def compile(self) -> StateGraph:
+        """Compile the state graph for the agent.
+
+        Returns:
+            StateGraph: The compiled state graph.
+        """
+        return self.graph.compile()
+    
+    async def _crawl_and_gather_background(self, state: BackgroundResearchState) -> BackgroundResearchState:
         site_contents = await self.tavily_client.crawl(state["company_url"], max_depth=2, limit=5, instructions=f"Gather background information about the company {state['company_name']}.")
         site_contents_str = "\n######\n".join([site.to_string() for site in site_contents])
         
@@ -57,7 +66,7 @@ Site contents:
         response.name = "Researcher"
         return {"messages": [response]} 
 
-    async def search_and_answer(self, state: BackgroundResearchState) -> BackgroundResearchState:
+    async def _search_and_answer(self, state: BackgroundResearchState) -> BackgroundResearchState:
         generate_search_queries_prompt = f"""
         You are an expert in researching company background information. Your task is to search for and answer questions about the company {state['company_name']}. 
 You conducted a web crawl and gathered some background information, but you need to fill in any gaps or missing details, as the reviewer has identified some incomplete information.
@@ -82,7 +91,7 @@ Your answer should be based only on the search results provided below. Do not ad
         response.name = "Researcher"
         return {"messages": [response]}
 
-    async def review(self, state: BackgroundResearchState) -> BackgroundResearchState:
+    async def _review(self, state: BackgroundResearchState) -> BackgroundResearchState:
         prompt = f"""
         You are an expert in reviewing company background information extracted by a Researcher. Your task is to review the gathered background information about the company {state['company_name']} and identify any missing or incomplete details.
 Background information includes, but is not limited to:
@@ -94,7 +103,7 @@ Please provide a list of missing or incomplete details that need further researc
         response.name = "Reviewer"
         return {"messages": [response]}
 
-    async def summarize(self, state: BackgroundResearchState) -> BackgroundResearchState:
+    async def _summarize(self, state: BackgroundResearchState) -> BackgroundResearchState:
         prompt = f"""
         You are an expert in summarizing company background information based on a conversation between a Researcher and an Reviewer.
 Your task is to create a concise summary of the gathered background information about the company {state['company_name']}.
@@ -103,4 +112,8 @@ The summary should be based on the conversation history provided below. DO NOT i
         """
         response = await self.llm.ainvoke([SystemMessage(content=prompt)] + state["messages"])
         response.name = "Background Information Summarizer"
-        return {"result": response.content, "messages": [response]}
+        
+        return {
+            "company_background": response.content,
+            "internal_messages": state["messages"] + [response]
+        }
