@@ -133,7 +133,7 @@ Your goal is to generate a well-structured search queries.
 The queries should be based on the final message of the interviewer.
 Each query should be precise. Sometimes it might be useful to break down complex questions into simpler, more focused search queries."""
 
-        search_queries = await self.llm.with_structured_output(TavilyBatchSearchInput).ainvoke(prompt_asking_for_search_queries)
+        search_queries = await self.llm.with_structured_output(TavilyBatchSearchInput).ainvoke([SystemMessage(content=prompt_asking_for_search_queries)] + state["messages"])
         
         # TODO - async all the way, make the graph async
         tavily_responses = await self.tavily_client.search(search_queries)
