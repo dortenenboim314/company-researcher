@@ -2,14 +2,14 @@ import operator
 from typing import Annotated, TypedDict
 from langchain_openai import ChatOpenAI
 from company_researcher.config.config import Config
-from company_researcher.core.agents.background import BackgroundAgent
-from company_researcher.core.agents.topic_research_agent import TopicResearchAgent
-from company_researcher.core.api_clients.tavily_client import TavilyClient
+from company_researcher.core.agents import TopicResearchAgent, BackgroundAgent
+from company_researcher.core.api_clients import TavilyClient
 from langgraph.graph import StateGraph, END, START
 from langchain_core.messages import SystemMessage, AIMessage
 from langgraph.graph import MessagesState
 from pydantic import BaseModel, Field
 import logging 
+
 class CompanyResearchInput(TypedDict):
     company_name: str
     company_url: str
@@ -91,7 +91,6 @@ class CompanyResearchAgent:
         Below are the results from each research area.
 """
         background_message = f"Background Research:\n{state['company_background']}\n"
-        print(state["results"])
         messages = [
             AIMessage(content=background_message),
         ] + state["results"]

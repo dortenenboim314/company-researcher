@@ -117,7 +117,6 @@ class TopicResearchAgent:
         Returns:
             TopicResearchState: _description_
         """
-        print(state)
         prompt_for_researcher = f"""You are an Interviewer tasked with asking an expert questions about {state["company_name"]}'s {self.topic_name}.
 Where {self.topic_name} is defined as: {self.topic_description}.
 You are also given the following background information about the company:
@@ -158,7 +157,6 @@ Each query should be precise. Sometimes it might be useful to break down complex
         tavily_responses = await self.tavily_client.search(search_queries)
 
         search_results = "\n########\n".join([res.to_string() for res in tavily_responses])
-        print(f"Search results: {search_results}")
         if not search_results:
             raise ValueError("No search results found. Please try again with different queries.")
 
