@@ -25,7 +25,7 @@
             border-radius: 8px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
             width: 100%;
-            max-width: 600px;
+            max-width: 900px;
             box-sizing: border-box;
         }
 
@@ -121,9 +121,7 @@
         </div>
         <button id="researchButton" onclick="performResearch()">Research</button>
 
-        <div id="loader" class="loader" style="display: none;">
-            <p>Performing research, please wait...</p>
-        </div>
+        <div id="loader" class="loader" style="display: none;"></div>
 
         <div id="error" class="error" style="display: none;"></div>
 
@@ -135,59 +133,77 @@
     </div>
 
     <script>
-        async function performResearch() {
-            const companyName = document.getElementById('companyName').value;
-            const companyUrl = document.getElementById('companyUrl').value;
-            const researchButton = document.getElementById('researchButton');
-            const loader = document.getElementById('loader');
-            const resultsDiv = document.getElementById('results');
-            const errorDiv = document.getElementById('error');
+    let loadingMessages = [
+        "Starting research...",
+        "Collecting background information...",
+        "Analyzing financial data...",
+        "Evaluating market position...",
+        "Compiling final report..."
+    ];
+    let currentMessageIndex = 0;
+    let loaderInterval;
 
-            // Basic validation
-            if (!companyName || !companyUrl) {
-                errorDiv.textContent = 'Please enter both company name and URL.';
-                errorDiv.style.display = 'block';
-                return;
-            }
+    async function performResearch() {
+        const companyName = document.getElementById('companyName').value;
+        const companyUrl = document.getElementById('companyUrl').value;
+        const researchButton = document.getElementById('researchButton');
+        const loader = document.getElementById('loader');
+        const errorDiv = document.getElementById('error');
+        const resultsDiv = document.getElementById('results');
 
-            // Disable button and show loader
-            researchButton.disabled = true;
-            researchButton.textContent = 'Researching...';
-            loader.style.display = 'block';
-            resultsDiv.style.display = 'none';
-            errorDiv.style.display = 'none';
-
-            try {
-                // NOTE: Replace '/api/research' with your actual backend API endpoint if needed.
-                const response = await fetch(`/api/research?company_name=${encodeURIComponent(companyName)}&company_url=${encodeURIComponent(companyUrl)}`);
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                displayResults(data);
-
-            } catch (error) {
-                errorDiv.textContent = `An error occurred: ${error.message}`;
-                errorDiv.style.display = 'block';
-            } finally {
-                // Re-enable button and hide loader
-                researchButton.disabled = false;
-                researchButton.textContent = 'Research';
-                loader.style.display = 'none';
-            }
+        if (!companyName || !companyUrl) {
+            errorDiv.textContent = 'Please enter both company name and URL.';
+            errorDiv.style.display = 'block';
+            return;
         }
 
-        function displayResults(data) {
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.style.display = 'block';
-            
-            document.getElementById('backgroundSummary').innerHTML = data.background_summary ? `<h2>Background Summary</h2><p>${data.background_summary}</p>` : '';
-            document.getElementById('financialHealthSummary').innerHTML = data.financial_health_summary ? `<h2>Financial Health Summary</h2><p>${data.financial_health_summary}</p>` : '';
-            document.getElementById('marketPositionSummary').innerHTML = data.market_position_summary ? `<h2>Market Position Summary</h2><p>${data.market_position_summary}</p>` : '';
+        // Reset state
+        researchButton.disabled = true;
+        researchButton.textContent = 'Researching...';
+        errorDiv.style.display = 'none';
+        resultsDiv.style.display = 'none';
+
+        // Start loader loop
+        loader.style.display = 'block';
+        loader.innerHTML = `<p>${loadingMessages[0]}</p>`;
+        currentMessageIndex = 0;
+        loaderInterval = setInterval(() => {
+            currentMessageIndex = Math.min(currentMessageIndex + 1, loadingMessages.length - 1);
+            loader.innerHTML = `<p>${loadingMessages[currentMessageIndex]}</p>`;
+        }, 6000);
+
+        try {
+            const response = await fetch(`/api/research?company_name=${encodeURIComponent(companyName)}&company_url=${encodeURIComponent(companyUrl)}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            displayResults(data);
+        } catch (error) {
+            errorDiv.textContent = `An error occurred: ${error.message}`;
+            errorDiv.style.display = 'block';
+        } finally {
+            clearInterval(loaderInterval);
+            loader.style.display = 'none';
+            researchButton.disabled = false;
+            researchButton.textContent = 'Research';
         }
-    </script>
+    }
+
+    function displayResults(data) {
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.style.display = 'block';
+
+        document.getElementById('backgroundSummary').innerHTML =
+            data.background_summary ? `<h2>Background Summary</h2><p>${data.background_summary}</p>` : '';
+        document.getElementById('financialHealthSummary').innerHTML =
+            data.financial_health_summary ? `<h2>Financial Health Summary</h2><p>${data.financial_health_summary}</p>` : '';
+        document.getElementById('marketPositionSummary').innerHTML =
+            data.market_position_summary ? `<h2>Market Position Summary</h2><p>${data.market_position_summary}</p>` : '';
+    }
+</script>
+
+
 
 </body>
 </html>
