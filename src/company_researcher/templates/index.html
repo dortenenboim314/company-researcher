@@ -72,7 +72,7 @@
         button:hover {
             background-color: #3367D6;
         }
-        
+
         button:disabled {
             background-color: #d2e3fc;
             cursor: not-allowed;
@@ -98,10 +98,40 @@
             line-height: 1.6;
             color: #5f6368;
         }
-        
+
         .loader {
             text-align: center;
             margin-top: 20px;
+        }
+
+        .loader p {
+            font-size: 18px;
+            font-weight: 500;
+            color: #202124;
+            animation: pulse 1.5s infinite;
+            display: inline-block;
+            position: relative;
+        }
+
+        .loader p::after {
+            content: "";
+            display: inline-block;
+            width: 1.5em;
+            text-align: left;
+            animation: dots 1s steps(3, end) infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes dots {
+            0%   { content: ""; }
+            33%  { content: "."; }
+            66%  { content: ".."; }
+            100% { content: "..."; }
         }
 
         .error {
@@ -113,32 +143,31 @@
 </head>
 <body>
 
-    <div class="container">
-        <h1>Company Research 🔎</h1>
-        <div class="input-group">
-            <input type="text" id="companyName" placeholder="Enter company name">
-            <input type="url" id="companyUrl" placeholder="Enter company URL">
-        </div>
-        <button id="researchButton" onclick="performResearch()">Research</button>
-
-        <div id="loader" class="loader" style="display: none;"></div>
-
-        <div id="error" class="error" style="display: none;"></div>
-
-        <div id="results" class="results" style="display: none;">
-            <div id="backgroundSummary" class="result-item"></div>
-            <div id="financialHealthSummary" class="result-item"></div>
-            <div id="marketPositionSummary" class="result-item"></div>
-        </div>
+<div class="container">
+    <h1>Company Research 🔎</h1>
+    <div class="input-group">
+        <input type="text" id="companyName" placeholder="Enter company name">
+        <input type="url" id="companyUrl" placeholder="Enter company URL">
     </div>
+    <button id="researchButton" onclick="performResearch()">Research</button>
 
-    <script>
+    <div id="loader" class="loader" style="display: none;"></div>
+    <div id="error" class="error" style="display: none;"></div>
+
+    <div id="results" class="results" style="display: none;">
+        <div id="backgroundSummary" class="result-item"></div>
+        <div id="financialHealthSummary" class="result-item"></div>
+        <div id="marketPositionSummary" class="result-item"></div>
+    </div>
+</div>
+
+<script>
     let loadingMessages = [
-        "Starting research...",
-        "Collecting background information...",
-        "Analyzing financial data...",
-        "Evaluating market position...",
-        "Compiling final report..."
+        "Starting research",
+        "Collecting background information",
+        "Analyzing financial data",
+        "Evaluating market position",
+        "Finalizing report"
     ];
     let currentMessageIndex = 0;
     let loaderInterval;
@@ -157,19 +186,19 @@
             return;
         }
 
-        // Reset state
+        // Reset UI
         researchButton.disabled = true;
         researchButton.textContent = 'Researching...';
         errorDiv.style.display = 'none';
         resultsDiv.style.display = 'none';
-
-        // Start loader loop
         loader.style.display = 'block';
         loader.innerHTML = `<p>${loadingMessages[0]}</p>`;
         currentMessageIndex = 0;
+
         loaderInterval = setInterval(() => {
             currentMessageIndex = Math.min(currentMessageIndex + 1, loadingMessages.length - 1);
-            loader.innerHTML = `<p>${loadingMessages[currentMessageIndex]}</p>`;
+            const p = loader.querySelector("p");
+            if (p) p.textContent = loadingMessages[currentMessageIndex];
         }, 6000);
 
         try {
@@ -202,8 +231,6 @@
             data.market_position_summary ? `<h2>Market Position Summary</h2><p>${data.market_position_summary}</p>` : '';
     }
 </script>
-
-
 
 </body>
 </html>
