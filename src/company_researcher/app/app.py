@@ -72,8 +72,8 @@ async def get_research(query: GetResearchRequest = Depends()):
     logging.info(f"response: {res}")
     
     return GetResearchResponse(
-        background_summary=res['backgrond'],
-        financial_health_summary=res['financial_health'],
-        market_position_summary=res['market_position']
+        background_summary=res.background,
+        financial_health_summary=res.financial_health,
+        market_position_summary=res.market_position
     )
     

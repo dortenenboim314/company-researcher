@@ -77,7 +77,12 @@ class CompanyResearchAgent:
             company_url=company_url,
         )
         result = await self.compiled_graph.ainvoke(research_input)
-        return result
+        research_output = CompanyResearchOutput(
+            background=result['background'],
+            financial_health=result['financial_health'],
+            market_position=result['market_position']
+        )
+        return research_output
 
     async def _summarize_results(self, state: CompanyResearchState) -> CompanyResearchState:
         prompt = f"""
