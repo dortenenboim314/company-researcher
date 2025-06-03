@@ -81,7 +81,7 @@ class TopicResearchAgent:
         prompt_for_summarizing_results = "" # should be implemented, basically telling the LLM to summarize the conversation between the user and the Interviewer into a concise, reliable summary. do not add any additional information, just make a report of the topic research etc..
         
         summary = await self.llm.ainvoke([SystemMessage(content=prompt_for_summarizing_results)] + state["messages"])
-        summary.name = self.topic_name + " Researcher"
+        summary.content = f"Summary of {self.topic_name} research for {state['company_name']}:\n{summary.content}"
         return {"results": [summary]}
         
     def route_to_search_or_summarize(self, state: TopicResearchState) -> str:
@@ -165,6 +165,7 @@ You are also given the following background information about the company:
 {state["company_background"]}
 
 Your answer should be based only on the search results provided below. Do not add any additional information.
+Note that search results may contain irrelevant information so you should use your expertise to filter out the noise and focus on information which is relevant to the topic of the interview and the company being researched.
 Here are the search results:
 {search_results}"""
         messages = [SystemMessage(content=prompt_for_asking_to_answer_questions_based_on_search_results)] + state["messages"]

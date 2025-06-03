@@ -7,14 +7,17 @@ from company_researcher.core.api_clients.tavily_client import TavilyBatchSearchI
 from langgraph.graph import StateGraph, END, START
 from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.graph import MessagesState
+from pydantic import BaseModel, Field
 
 class CompanyResearchInput(TypedDict):
     company_name: str
     company_url: str
 
-class CompanyResearchOutput(TypedDict):
-    final_report: str
-
+class CompanyResearchOutput(BaseModel):
+    background: str = Field(description="Background information such as (but not limited to) its industry, founding date, mission or vision, notable milestones, current status, and estimated number of employees.")
+    financial_health: str = Field(description="Financial health information including revenue, expenses, and profitability.")
+    market_position: str = Field(description="Market position information including competitors, market share, and industry trends.")
+    
 class CompanyResearchState(MessagesState):
     company_name: str
     company_url: str
@@ -65,14 +68,14 @@ class CompanyResearchAgent:
         
         self.compiled_graph = self.graph.compile()
     
-    def perform_research(self, company_name: str, company_url: str) -> CompanyResearchState:
+    async def perform_research(self, company_name: str, company_url: str) -> CompanyResearchOutput:
         """Perform company research by invoking the state graph."""
         research_input = CompanyResearchInput(
             company_name=company_name,
             company_url=company_url,
         )
-        result = self.compiled_graph.ainvoke(research_input)
-        return CompanyResearchState(**result)
+        result = await self.compiled_graph.ainvoke(research_input)
+        return result
 
     async def _summarize_results(self, state: CompanyResearchState) -> CompanyResearchState:
         prompt = f"""
@@ -85,8 +88,12 @@ class CompanyResearchAgent:
         The company being researched is {state['company_name']}.
         Below are the results from each research area.
 """
-
-        messages = [SystemMessage(content=prompt)] + state["results"]
-        response = await self.llm.ainvoke(messages)
-        state["final_report"] = response.content
-        return state
+        background_message = f"Background Research:\n{state['company_background']}\n"
+        print(state["results"])
+        messages = [
+            HumanMessage(content=background_message),
+            
+        ] + state["results"]
+        messages = [SystemMessage(content=prompt)] + messages
+        response = await self.llm.with_structured_output(CompanyResearchOutput).ainvoke(messages)
+        return response

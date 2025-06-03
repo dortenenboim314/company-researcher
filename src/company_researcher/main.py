@@ -7,13 +7,14 @@ from fastapi import Request
 from fastapi.middleware.cors import CORSMiddleware
 from company_researcher.converters import research_state_to_response
 from company_researcher.core.research_manager import ResearchManager
-from company_researcher.models.models import ResearchQuery, ResearchResponse
+from company_researcher.models.models import FinalReport, ResearchQuery, ResearchResponse
+import time
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = FastAPI()
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 # Mount static files
@@ -53,11 +54,18 @@ config = {
 }
 researcher = ResearchManager(config=config)
 
-@app.get("/api/research", response_model=ResearchResponse)
+@app.get("/api/research", response_model=FinalReport)
 async def get_research(query: ResearchQuery = Depends()):
     logging.info(f"Received request for company: {query.company_name}, URL: {query.company_url}")
-    res = await researcher.perfrom_research(
-        company_name=query.company_name,
-        company_url=query.company_url
+    # res = await researcher.perfrom_research(
+    #     company_name=query.company_name,
+    #     company_url=query.company_url
+    # )
+    time.sleep(5)
+    res = FinalReport(
+        background_summary="Sample background summary",
+        financial_health_summary="Sample financial health summary",
+        market_position_summary="Sample market position summary",
     )
-    return research_state_to_response(res)
+    
+    return res
