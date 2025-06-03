@@ -45,7 +45,6 @@ async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
-# read config from config\default.yaml
 config = load_config()
 llm = ChatOpenAI(model = config.openai_model, temperature=config.llm_temperature)
 tavily_client = TavilyClient()
@@ -70,9 +69,11 @@ async def get_research(query: GetResearchRequest = Depends()):
     #     market_position_summary="Sample market position summary",
     # )
     
+    logging.info(f"response: {res}")
+    
     return GetResearchResponse(
-        background_summary=res.background,
-        financial_health_summary=res.financial_health,
-        market_position_summary=res.market_position
+        background_summary=res['backgrond'],
+        financial_health_summary=res['financial_health'],
+        market_position_summary=res['market_position']
     )
     
