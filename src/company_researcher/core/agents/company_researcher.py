@@ -14,11 +14,16 @@ class CompanyResearchInput(TypedDict):
     company_name: str
     company_url: str
 
+class GroundedInformation(BaseModel):
+    background: str = Field(description="Limited to 130 words. Background information such as (but not limited to) its industry, founding date, mission or vision, notable milestones, current status, and estimated number of employees.")
+    financial_health: str = Field(description="Limited to 130 words. Financial health information including revenue, expenses, and profitability.")
+    market_position: str = Field(description="Limited to 130 words. Market position information including competitors, market share, and industry trends.")
+
 class CompanyResearchOutput(BaseModel):
-    background: str = Field(description="Background information such as (but not limited to) its industry, founding date, mission or vision, notable milestones, current status, and estimated number of employees.")
-    financial_health: str = Field(description="Financial health information including revenue, expenses, and profitability.")
-    market_position: str = Field(description="Market position information including competitors, market share, and industry trends.")
-    
+    grounded_information: GroundedInformation = Field(description="Grounded information about the company, including background, financial health, and market position. should contain only information from the research conducted by the agents.")
+    positive_aspects: str = Field(description="Limited to 80 words. Positive aspects of the company, such as strengths, opportunities, and positive trends.")
+    negative_aspects: str = Field(description="Limited to 80 words. Negative aspects of the company, such as weaknesses, threats, and negative trends.")
+
 class CompanyResearchState(MessagesState):
     company_name: str
     company_url: str
@@ -77,11 +82,7 @@ class CompanyResearchAgent:
             company_url=company_url,
         )
         result = await self.compiled_graph.ainvoke(research_input)
-        research_output = CompanyResearchOutput(
-            background=result['background'],
-            financial_health=result['financial_health'],
-            market_position=result['market_position']
-        )
+        research_output = CompanyResearchOutput(**result)
         return research_output
 
     async def _summarize_results(self, state: CompanyResearchState) -> CompanyResearchState:
