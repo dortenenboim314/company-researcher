@@ -63,14 +63,11 @@ class TavilyClient:
     A simple client for interacting with the Tavily search API.
     """
     
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self):
         """
         Initialize the Tavily client.
-        
-        Args:
-            api_key: Tavily API key. If None, will try to load from TAVILY_API_KEY env var.
         """
-        self.api_key = api_key or os.getenv("TAVILY_API_KEY")
+        self.api_key = os.getenv("TAVILY_API_KEY")
         self.async_client = AsyncTavilyClient(api_key=self.api_key)
         
         if not self.api_key:

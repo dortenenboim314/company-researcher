@@ -5,10 +5,14 @@ import os
 from fastapi import Request 
 from fastapi.middleware.cors import CORSMiddleware
 from langchain_openai import ChatOpenAI
-from company_researcher.core.agents.company_researcher_agent import CompanyResearchAgent
+from company_researcher.core.agents import CompanyResearchAgent
 from company_researcher.core.api_clients.tavily_client import TavilyClient
 from company_researcher.app.schemas.get_research import GetResearchResponse, GetResearchRequest
 from company_researcher.config import load_config
+from dotenv import load_dotenv
+
+load_dotenv(override=True)
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = FastAPI()
