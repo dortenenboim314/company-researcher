@@ -1,142 +1,193 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Company Research</title>
-  <!-- Tailwind CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Research</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap');
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f7f9fc;
+            color: #3c4043;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            width: 100%;
+            max-width: 600px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 400;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        input[type="text"], input[type="url"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            font-size: 16px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        input[type="text"]:focus, input[type="url"]:focus {
+            outline: none;
+            border-color: #4285F4;
+            box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4285F4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #3367D6;
+        }
+        
+        button:disabled {
+            background-color: #d2e3fc;
+            cursor: not-allowed;
+        }
+
+        .results {
+            margin-top: 30px;
+        }
+
+        .result-item {
+            margin-bottom: 20px;
+        }
+
+        .result-item h2 {
+            font-size: 18px;
+            font-weight: 500;
+            color: #202124;
+            margin-bottom: 8px;
+        }
+
+        .result-item p {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #5f6368;
+        }
+        
+        .loader {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .error {
+            color: #d93025;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
 </head>
-<body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
-  <div class="w-full max-w-4xl bg-white rounded-2xl shadow p-6">
-    <h1 class="text-2xl font-bold mb-4 text-gray-800">Company Research</h1>
-    <form id="research-form" class="space-y-4">
-      <div>
-        <label for="companyName" class="block text-gray-700 mb-1">Company Name</label>
-        <input id="companyName" type="text" required
-          class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"/>
-      </div>
-      <div>
-        <label for="companyUrl" class="block text-gray-700 mb-1">Company URL</label>
-        <input id="companyUrl" type="url" required
-          class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"/>
-      </div>
-      <button type="submit"
-        class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
-        Run Research
-      </button>
-    </form>
+<body>
 
-    <p id="error" class="mt-4 text-red-600 hidden"></p>
-    <p id="loading" class="mt-4 text-gray-600 hidden">Loading...</p>
+    <div class="container">
+        <h1>Company Research 🔎</h1>
+        <div class="input-group">
+            <input type="text" id="companyName" placeholder="Enter company name">
+            <input type="url" id="companyUrl" placeholder="Enter company URL">
+        </div>
+        <button id="researchButton" onclick="performResearch()">Research</button>
 
-    <div id="final-report" class="mt-6 space-y-6"></div>
-    <div id="structured-report" class="mt-6 space-y-6"></div>
-  </div>
+        <div id="loader" class="loader" style="display: none;">
+            <p>Performing research, please wait...</p>
+        </div>
 
-  <script>
-    const form = document.getElementById('research-form');
-    const errorEl = document.getElementById('error');
-    const loadingEl = document.getElementById('loading');
-    const finalEl = document.getElementById('final-report');
-    const structuredEl = document.getElementById('structured-report');
+        <div id="error" class="error" style="display: none;"></div>
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      errorEl.classList.add('hidden');
-      loadingEl.classList.remove('hidden');
-      finalEl.innerHTML = '';
-      structuredEl.innerHTML = '';
+        <div id="results" class="results" style="display: none;">
+            <div id="backgroundSummary" class="result-item"></div>
+            <div id="financialHealthSummary" class="result-item"></div>
+            <div id="marketPositionSummary" class="result-item"></div>
+        </div>
+    </div>
 
-      const name = document.getElementById('companyName').value;
-      const url = document.getElementById('companyUrl').value;
+    <script>
+        async function performResearch() {
+            const companyName = document.getElementById('companyName').value;
+            const companyUrl = document.getElementById('companyUrl').value;
+            const researchButton = document.getElementById('researchButton');
+            const loader = document.getElementById('loader');
+            const resultsDiv = document.getElementById('results');
+            const errorDiv = document.getElementById('error');
 
-      try {
-        const res = await fetch(
-          `/api/research?company_name=${encodeURIComponent(name)}&company_url=${encodeURIComponent(url)}`
-        );
-        if (!res.ok) throw new Error(`Error ${res.status}`);
-        const data = await res.json();
+            // Basic validation
+            if (!companyName || !companyUrl) {
+                errorDiv.textContent = 'Please enter both company name and URL.';
+                errorDiv.style.display = 'block';
+                return;
+            }
 
-        // Final report
-        if (data.final_report) {
-          const fr = data.final_report;
-          ['background_summary','financial_health_summary','market_position_summary','news_summary']
-            .forEach(key => {
-              if (fr[key]) {
-                const section = document.createElement('div');
-                const title = key.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
-                section.innerHTML = `<h2 class="font-semibold text-lg">${title}</h2><p class="text-gray-700">${fr[key]}</p>`;
-                finalEl.appendChild(section);
-              }
-            });
+            // Disable button and show loader
+            researchButton.disabled = true;
+            researchButton.textContent = 'Researching...';
+            loader.style.display = 'block';
+            resultsDiv.style.display = 'none';
+            errorDiv.style.display = 'none';
+
+            try {
+                // NOTE: Replace '/api/research' with your actual backend API endpoint if needed.
+                const response = await fetch(`/api/research?company_name=${encodeURIComponent(companyName)}&company_url=${encodeURIComponent(companyUrl)}`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                displayResults(data);
+
+            } catch (error) {
+                errorDiv.textContent = `An error occurred: ${error.message}`;
+                errorDiv.style.display = 'block';
+            } finally {
+                // Re-enable button and hide loader
+                researchButton.disabled = false;
+                researchButton.textContent = 'Research';
+                loader.style.display = 'none';
+            }
         }
 
-        // Structured report
-        if (data.background) {
-          const bg = data.background;
-          const ul = document.createElement('ul'); ul.className = 'list-disc list-inside text-gray-700';
-          if (bg.industry) ul.innerHTML += `<li><strong>Industry:</strong> ${bg.industry}</li>`;
-          if (bg.founded?.at) ul.innerHTML += `<li><strong>Founded:</strong> ${new Date(bg.founded.at).toLocaleDateString()}</li>`;
-          if (bg.founded?.by) ul.innerHTML += `<li><strong>Founders:</strong> ${bg.founded.by.join(', ')}</li>`;
-          if (bg.description) ul.innerHTML += `<li><strong>Description:</strong> ${bg.description}</li>`;
-          if (bg.key_milestones) ul.innerHTML += `<li><strong>Milestones:</strong> ${bg.key_milestones.join('; ')}</li>`;
-          if (bg.current_status) ul.innerHTML += `<li><strong>Current Status:</strong> ${bg.current_status}</li>`;
-          const headerBg = document.createElement('h2');
-          headerBg.textContent = 'Structured Background';
-          headerBg.className = 'font-semibold text-lg';
-          structuredEl.appendChild(headerBg);
-          structuredEl.appendChild(ul);
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.style.display = 'block';
+            
+            document.getElementById('backgroundSummary').innerHTML = data.background_summary ? `<h2>Background Summary</h2><p>${data.background_summary}</p>` : '';
+            document.getElementById('financialHealthSummary').innerHTML = data.financial_health_summary ? `<h2>Financial Health Summary</h2><p>${data.financial_health_summary}</p>` : '';
+            document.getElementById('marketPositionSummary').innerHTML = data.market_position_summary ? `<h2>Market Position Summary</h2><p>${data.market_position_summary}</p>` : '';
         }
+    </script>
 
-        if (data.financial_health) {
-          const fh = data.financial_health;
-          const ul = document.createElement('ul'); ul.className = 'list-disc list-inside text-gray-700';
-          if (fh.revenue != null) ul.innerHTML += `<li><strong>Revenue:</strong> ${fh.revenue.toLocaleString()}</li>`;
-          if (fh.funding_rounds) ul.innerHTML += `<li><strong>Funding Rounds:</strong> ${fh.funding_rounds.join('; ')}</li>`;
-          if (fh.burn_rate) ul.innerHTML += `<li><strong>Burn Rate:</strong> ${fh.burn_rate}</li>`;
-          if (fh.runway_months != null) ul.innerHTML += `<li><strong>Runway:</strong> ${fh.runway_months} months</li>`;
-          const headerFh = document.createElement('h2');
-          headerFh.textContent = 'Structured Financial Health';
-          headerFh.className = 'font-semibold text-lg';
-          structuredEl.appendChild(headerFh);
-          structuredEl.appendChild(ul);
-        }
-
-        if (data.market_position) {
-          const mp = data.market_position;
-          const ul = document.createElement('ul'); ul.className = 'list-disc list-inside text-gray-700';
-          if (mp.competitors) ul.innerHTML += `<li><strong>Competitors:</strong> ${mp.competitors.join(', ')}</li>`;
-          if (mp.unique_selling_points) ul.innerHTML += `<li><strong>Unique Selling Points:</strong> ${mp.unique_selling_points.join('; ')}</li>`;
-          if (mp.market_share) ul.innerHTML += `<li><strong>Market Share:</strong> ${mp.market_share}</li>`;
-          const headerMp = document.createElement('h2');
-          headerMp.textContent = 'Structured Market Position';
-          headerMp.className = 'font-semibold text-lg';
-          structuredEl.appendChild(headerMp);
-          structuredEl.appendChild(ul);
-        }
-
-        if (data.news?.recent_important_news) {
-          const items = data.news.recent_important_news;
-          const ul = document.createElement('ul'); ul.className = 'list-disc list-inside text-gray-700';
-          items.forEach(item => {
-            ul.innerHTML += `<li><a href="${item.url}" target="_blank" class="underline">${item.title}</a>${item.date_published ? ' — ' + new Date(item.date_published).toLocaleDateString() : ''}</li>`;
-          });
-          const headerNews = document.createElement('h2');
-          headerNews.textContent = 'Structured News';
-          headerNews.className = 'font-semibold text-lg';
-          structuredEl.appendChild(headerNews);
-          structuredEl.appendChild(ul);
-        }
-
-      } catch (err) {
-        errorEl.textContent = err.message;
-        errorEl.classList.remove('hidden');
-      } finally {
-        loadingEl.classList.add('hidden');
-      }
-    });
-  </script>
 </body>
 </html>
