@@ -1,3 +1,3 @@
 from .background import BackgroundAgent, BackgroundInput, BackgroundOutput, BackgroundResearchState
-from .topic_research_agent import TopicResearchAgent, TopicResearchInput
-from .company_researcher_agent import CompanyResearchAgent, CompanyResearchInput, CompanyResearchOutput, CompanyResearchState
+from .research_topic_interviewer import TopicResearchAgent, TopicResearchInput
+from .company_researcher import CompanyResearchAgent, CompanyResearchInput, CompanyResearchOutput, CompanyResearchState
