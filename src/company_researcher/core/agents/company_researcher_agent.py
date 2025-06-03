@@ -1,14 +1,15 @@
 import operator
 from typing import Annotated, TypedDict
 from langchain_openai import ChatOpenAI
+from company_researcher.config.config import Config
 from company_researcher.core.agents.background import BackgroundAgent
 from company_researcher.core.agents.topic_research_agent import TopicResearchAgent
-from company_researcher.core.api_clients.tavily_client import TavilyBatchSearchInput, TavilyClient
+from company_researcher.core.api_clients.tavily_client import TavilyClient
 from langgraph.graph import StateGraph, END, START
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import SystemMessage, AIMessage
 from langgraph.graph import MessagesState
 from pydantic import BaseModel, Field
-
+import logging 
 class CompanyResearchInput(TypedDict):
     company_name: str
     company_url: str
@@ -28,7 +29,8 @@ class CompanyResearchState(MessagesState):
 class CompanyResearchAgent:
     def __init__(self,
                  llm:ChatOpenAI,
-                 tavily_client:TavilyClient):
+                 tavily_client:TavilyClient,
+                 config: Config):
         
         self.llm = llm
         self.tavily_client = tavily_client
@@ -42,17 +44,17 @@ class CompanyResearchAgent:
             tavily_client=self.tavily_client,
             topic_name="Financial Health",
             topic_description="Gather and analyze financial health information for the company, including revenue, expenses, and profitability.",
-            max_steps=3
+            max_steps=config.max_searches_per_agent
         )
         self.market_position_agent = TopicResearchAgent(
             llm=self.llm,
             tavily_client=self.tavily_client,
             topic_name="Market Position",
             topic_description="Gather and analyze the company's market position, including its competitors, market share, and industry trends.",
-            max_steps=3
+            max_steps=config.max_searches_per_agent
         )
-        
-        
+
+
         self.graph.add_node("background_research", self.background_agent.compile())
         self.graph.add_node("financial_health_research", self.financial_health_agent.compile())
         self.graph.add_node("market_position_research", self.market_position_agent.compile())
@@ -91,9 +93,11 @@ class CompanyResearchAgent:
         background_message = f"Background Research:\n{state['company_background']}\n"
         print(state["results"])
         messages = [
-            HumanMessage(content=background_message),
-            
+            AIMessage(content=background_message),
         ] + state["results"]
+        
+        logging.info(f"messages for summarization:\n{messages}")
+        
         messages = [SystemMessage(content=prompt)] + messages
         response = await self.llm.with_structured_output(CompanyResearchOutput).ainvoke(messages)
         return response

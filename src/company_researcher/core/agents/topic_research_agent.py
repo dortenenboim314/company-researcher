@@ -1,15 +1,9 @@
-from typing import Annotated, TypedDict
+from typing import TypedDict
 from langchain_openai import ChatOpenAI
-from company_researcher.core.agents import BackgroundAgent, FinancialHealthAgent, MarketPositionAgent, NewsAgent
 from company_researcher.core.api_clients.tavily_client import TavilyBatchSearchInput, TavilyClient
-from company_researcher.core.utils.llm_wrapper import LLMLoggingWrapper
 from langgraph.graph import StateGraph, END, START
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langchain_core.messages import SystemMessage
 from langgraph.graph import MessagesState
-import asyncio
-from dataclasses import dataclass
-from langchain_core.messages import AnyMessage
-from langgraph.graph.message import add_messages
 import logging
 
 class TopicResearchInput(TypedDict):
@@ -78,10 +72,19 @@ class TopicResearchAgent:
             TopicResearchState: The updated state with the summary.
         """
         # This should be replaced with the actual logic to summarize the results
-        prompt_for_summarizing_results = "" # should be implemented, basically telling the LLM to summarize the conversation between the user and the Interviewer into a concise, reliable summary. do not add any additional information, just make a report of the topic research etc..
-        
+        prompt_for_summarizing_results = f"""You are an expert in summarizing conversations between an interviewer and an expert into a {self.topic_name} report.
+        {self.topic_name} is defined as: {self.topic_description}.
+        You will be given a conversation between an interviewer and an expert.
+        The Interview is about {state["company_name"]}'s {self.topic_name}.
+        You are also given the following background information about the company:
+{state["company_background"]}
+        Your task is to summarize the conversation and provide a concise report that highlights the key findings and insights related to {self.topic_name} for {state["company_name"]}.
+        The report should be based only on the conversation and the background information provided, and should not include any additional information or assumptions.
+        """
+
         summary = await self.llm.ainvoke([SystemMessage(content=prompt_for_summarizing_results)] + state["messages"])
         summary.content = f"Summary of {self.topic_name} research for {state['company_name']}:\n{summary.content}"
+        logging.info(f"Summary for {self.topic_name} research:\n{summary.content}")
         return {"results": [summary]}
         
     def route_to_search_or_summarize(self, state: TopicResearchState) -> str:
