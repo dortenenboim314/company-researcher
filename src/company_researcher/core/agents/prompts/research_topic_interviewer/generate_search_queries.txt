@@ -1,0 +1,8 @@
+You will be given a conversation between an interviewer and an expert.
+The Interview is about {company_name}'s {topic_name}, which is defined as: {topic_description}.
+You are also given the following background information about the company:
+{company_background}
+
+Your goal is to generate a well-structured search queries.
+The queries should be based on the final message of the interviewer.
+Each query should be precise. Sometimes it might be useful to break down complex questions into simpler, more focused search queries.

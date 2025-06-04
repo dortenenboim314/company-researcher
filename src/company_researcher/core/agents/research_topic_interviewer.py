@@ -4,6 +4,7 @@ from company_researcher.core.api_clients.tavily_client import TavilyBatchSearchI
 from langgraph.graph import StateGraph, END, START
 from langchain_core.messages import SystemMessage
 from langgraph.graph import MessagesState
+from company_researcher.core.agents.prompts.utils import load_prompt
 import logging
 
 class TopicResearchInput(TypedDict):
@@ -54,6 +55,13 @@ class TopicResearchAgent:
         self.graph.add_edge("search_web_and_answer", "ask_question")
         self.graph.add_edge("summarize_results", END)
         
+        self.prompts = {
+            "summarize_results": load_prompt("research_topic_interviewer\\summarize_results.txt"),
+            "ask_question": load_prompt("research_topic_interviewer\\ask_question.txt"),
+            "generate_search_queries": load_prompt("research_topic_interviewer\\generate_search_queries.txt"),
+            "answer_based_on_search_results": load_prompt("research_topic_interviewer\\answer_based_on_search_results.txt"),
+        }
+        
     def compile(self) -> StateGraph:
         """Compile the state graph for the agent.
 
@@ -71,16 +79,12 @@ class TopicResearchAgent:
         Returns:
             TopicResearchState: The updated state with the summary.
         """
-        # This should be replaced with the actual logic to summarize the results
-        prompt_for_summarizing_results = f"""You are an expert in summarizing conversations between an interviewer and an expert into a {self.topic_name} report.
-        {self.topic_name} is defined as: {self.topic_description}.
-        You will be given a conversation between an interviewer and an expert.
-        The Interview is about {state["company_name"]}'s {self.topic_name}.
-        You are also given the following background information about the company:
-{state["company_background"]}
-        Your task is to summarize the conversation and provide a concise report that highlights the key findings and insights related to {self.topic_name} for {state["company_name"]}.
-        The report should be based only on the conversation and the background information provided, and should not include any additional information or assumptions.
-        """
+        prompt_for_summarizing_results = self.prompts["summarize_results"].format(
+            topic_name=self.topic_name,
+            topic_description=self.topic_description,
+            company_name=state["company_name"],
+            company_background=state["company_background"]
+        )
 
         summary = await self.llm.ainvoke([SystemMessage(content=prompt_for_summarizing_results)] + state["messages"])
         summary.content = f"Summary of {self.topic_name} research for {state['company_name']}:\n{summary.content}"
@@ -117,13 +121,12 @@ class TopicResearchAgent:
         Returns:
             TopicResearchState: _description_
         """
-        prompt_for_researcher = f"""You are an Interviewer tasked with asking an expert questions about {state["company_name"]}'s {self.topic_name}.
-Where {self.topic_name} is defined as: {self.topic_description}.
-You are also given the following background information about the company:
-{state["company_background"]}
-
-Your goal is to gather detailed information about {state["company_name"]}'s {self.topic_name} only by asking the expert relevant questions.
-In case you think you already have enough information, you should finish the interview by saying exactly "Thank you" and nothing else."""
+        prompt_for_researcher = self.prompts["ask_question"].format(
+            company_name=state["company_name"],
+            topic_name=self.topic_name,
+            topic_description=self.topic_description,
+            company_background=state["company_background"]
+        )
         messages = state["messages"]
         
         question = await self.llm.ainvoke([SystemMessage(content=prompt_for_researcher)] + messages)
@@ -142,14 +145,12 @@ In case you think you already have enough information, you should finish the int
         """
         # This should be replaced with the actual logic to search the web
         
-        prompt_asking_for_search_queries = f"""You will be given a conversation between an interviewer and an expert.
-        The Interview is about {state["company_name"]}'s {self.topic_name}, which is defined as: {self.topic_description}.
-        You are also given the following background information about the company:
-{state["company_background"]}
-
-Your goal is to generate a well-structured search queries.
-The queries should be based on the final message of the interviewer.
-Each query should be precise. Sometimes it might be useful to break down complex questions into simpler, more focused search queries."""
+        prompt_asking_for_search_queries = self.prompts["generate_search_queries"].format(
+            company_name=state["company_name"],
+            topic_name=self.topic_name,
+            topic_description=self.topic_description,
+            company_background=state["company_background"]
+        )
 
         search_queries = await self.llm.with_structured_output(TavilyBatchSearchInput).ainvoke([SystemMessage(content=prompt_asking_for_search_queries)] + state["messages"])
         
@@ -160,15 +161,13 @@ Each query should be precise. Sometimes it might be useful to break down complex
         if not search_results:
             raise ValueError("No search results found. Please try again with different queries.")
 
-        prompt_for_asking_to_answer_questions_based_on_search_results = f"""You will be given a conversation between an interviewer and an expert.
-The Interview is about {state["company_name"]}'s {self.topic_name}, which is defined as: {self.topic_description}.
-You are also given the following background information about the company:
-{state["company_background"]}
-
-Your answer should be based only on the search results provided below. Do not add any additional information.
-Note that search results may contain irrelevant information so you should use your expertise to filter out the noise and focus on information which is relevant to the topic of the interview and the company being researched.
-Here are the search results:
-{search_results}"""
+        prompt_for_asking_to_answer_questions_based_on_search_results = self.prompts["answer_based_on_search_results"].format(
+            company_name=state["company_name"],
+            topic_name=self.topic_name,
+            topic_description=self.topic_description,
+            company_background=state["company_background"],
+            search_results=search_results
+        )
         messages = [SystemMessage(content=prompt_for_asking_to_answer_questions_based_on_search_results)] + state["messages"]
         
         answer = await self.llm.ainvoke(messages)
