@@ -7,8 +7,9 @@ from company_researcher.core.api_clients import TavilyClient
 from langgraph.graph import StateGraph, END, START
 from langchain_core.messages import SystemMessage, AIMessage
 from langgraph.graph import MessagesState
+from company_researcher.core.agents.prompts.utils import load_prompt
 from pydantic import BaseModel, Field
-import logging 
+import logging
 
 class CompanyResearchInput(TypedDict):
     company_name: str
@@ -73,6 +74,10 @@ class CompanyResearchAgent:
         self.graph.add_edge("market_position_research", "summarize_results")
         self.graph.add_edge("summarize_results", END)
         
+        self.prompts = {
+            "summarize_results": load_prompt("company_researcher\\summarize_results.txt"),
+        }
+        
         self.compiled_graph = self.graph.compile()
     
     async def perform_research(self, company_name: str, company_url: str) -> CompanyResearchOutput:
@@ -86,18 +91,7 @@ class CompanyResearchAgent:
         return research_output
 
     async def _summarize_results(self, state: CompanyResearchState) -> CompanyResearchState:
-        prompt = f"""
-        You are an expert in summarizing company research. Your task is to create a final report based on the results of the research conducted on a company.
-        The research has been conducted by 3 specialized agents: Background Research, Financial Health Research, and Market Position Research.
-        You should not make up any information, and you should not use any external knowledge or assumptions.
-        You need to write a report to a reader who is not familiar with the company or the research process.
-        The report should be concise, clear, and informative, summarizing the key findings from each research area.
-        The report should be structured and easy to read. You should begin with an introduction to the company, followed by sections for each research area, and conclude with a summary of the overall findings.
-        Your summary should not be long. Pay attention to the word limits for each section:
-        - Background, Financial Health, and Market Position - each should be limited to 130 words.
-        The company being researched is {state['company_name']}.
-        Below are the results from each research area.
-"""
+        prompt = self.prompts["summarize_results"].format(company_name=state["company_name"])
         background_message = f"Background Research:\n{state['company_background']}\n"
         messages = [
             AIMessage(content=background_message),
