@@ -4,6 +4,8 @@ from company_researcher.core.api_clients.tavily_client import TavilyBatchSearchI
 from langgraph.graph import StateGraph, END, START
 from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.graph import MessagesState
+from company_researcher.core.agents.prompts.utils import load_prompt
+import logging
 
 class BackgroundInput(TypedDict):
     company_name: str
@@ -42,6 +44,10 @@ class BackgroundAgent:
         self.graph.add_edge("review", "search_and_answer")
         self.graph.add_edge("search_and_answer", "summarize")
         self.graph.add_edge("summarize", END)
+        
+        self.prompts = {
+            "crawl": load_prompt("background\crawl.txt"),
+        }
     
     def compile(self) -> StateGraph:
         """Compile the state graph for the agent.
@@ -55,13 +61,8 @@ class BackgroundAgent:
         site_contents = await self.tavily_client.crawl(state["company_url"], max_depth=2, limit=5, instructions=f"Gather background information about the company {state['company_name']}.")
         site_contents_str = "\n######\n".join([site.to_string() for site in site_contents])
         
-        prompt = f"""
-        You are an expert in researching company background information. Your task is to extract high-level contextual details about a company, such as its industry, founding date, mission or vision, notable milestones, current status, and estimated number of employees.
-Your task is to gather and summarize background information about the company {state['company_name']} based ONLY on the following site contents below.
-You should never make up information, and you should not use any external knowledge or assumptions.
-Site contents:
-{site_contents_str}
-"""
+        prompt = self.prompts["crawl"].format(site_contents_str=site_contents_str, company_name=state["company_name"])
+        logging.info(f"Prompt for background research:\n{prompt}")
         response = await self.llm.ainvoke([HumanMessage(content=prompt)])
         response.name = "Researcher"
         return {"messages": [response]} 
