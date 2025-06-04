@@ -56,10 +56,10 @@ class TopicResearchAgent:
         self.graph.add_edge("summarize_results", END)
         
         self.prompts = {
-            "summarize_results": load_prompt("research_topic_interviewer\\summarize_results.txt"),
-            "ask_question": load_prompt("research_topic_interviewer\\ask_question.txt"),
-            "generate_search_queries": load_prompt("research_topic_interviewer\\generate_search_queries.txt"),
-            "answer_based_on_search_results": load_prompt("research_topic_interviewer\\answer_based_on_search_results.txt"),
+            "summarize_results": load_prompt("research_topic_interviewer/summarize_results.txt"),
+            "ask_question": load_prompt("research_topic_interviewer/ask_question.txt"),
+            "generate_search_queries": load_prompt("research_topic_interviewer/generate_search_queries.txt"),
+            "answer_based_on_search_results": load_prompt("research_topic_interviewer/answer_based_on_search_results.txt"),
         }
         
     def compile(self) -> StateGraph:

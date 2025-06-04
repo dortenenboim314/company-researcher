@@ -75,7 +75,7 @@ class CompanyResearchAgent:
         self.graph.add_edge("summarize_results", END)
         
         self.prompts = {
-            "summarize_results": load_prompt("company_researcher\\summarize_results.txt"),
+            "summarize_results": load_prompt("company_researcher/summarize_results.txt"),
         }
         
         self.compiled_graph = self.graph.compile()

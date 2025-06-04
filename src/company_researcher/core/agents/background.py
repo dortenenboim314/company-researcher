@@ -46,11 +46,11 @@ class BackgroundAgent:
         self.graph.add_edge("summarize", END)
         
         self.prompts = {
-            "extract_from_site_content": load_prompt("background\\extract_from_site_content.txt"),
-            "generate_search_queries": load_prompt("background\\generate_search_queries.txt"),
-            "answer_based_on_search": load_prompt("background\\answer_based_on_search.txt"),
-            "review": load_prompt("background\\review.txt"),
-            "summarize": load_prompt("background\\summarize.txt"),
+            "extract_from_site_content": load_prompt("background/extract_from_site_content.txt"),
+            "generate_search_queries": load_prompt("background/generate_search_queries.txt"),
+            "answer_based_on_search": load_prompt("background/answer_based_on_search.txt"),
+            "review": load_prompt("background/review.txt"),
+            "summarize": load_prompt("background/summarize.txt"),
         }
     
     def compile(self) -> StateGraph:
