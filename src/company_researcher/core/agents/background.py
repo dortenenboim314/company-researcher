@@ -46,7 +46,11 @@ class BackgroundAgent:
         self.graph.add_edge("summarize", END)
         
         self.prompts = {
-            "extract_from_site_content": load_prompt("background\extract_from_site_content.txt"),
+            "extract_from_site_content": load_prompt("background\\extract_from_site_content.txt"),
+            "generate_search_queries": load_prompt("background\\generate_search_queries.txt"),
+            "answer_based_on_search": load_prompt("background\\answer_based_on_search.txt"),
+            "review": load_prompt("background\\review.txt"),
+            "summarize": load_prompt("background\\summarize.txt"),
         }
     
     def compile(self) -> StateGraph:
@@ -67,49 +71,26 @@ class BackgroundAgent:
         return {"messages": [response]} 
 
     async def _search_and_answer(self, state: BackgroundResearchState) -> BackgroundResearchState:
-        generate_search_queries_prompt = f"""
-        You are an expert in researching company background information. Your task is to search for and answer questions about the company {state['company_name']}. 
-You conducted a web crawl and gathered some background information, but you need to fill in any gaps or missing details, as the reviewer has identified some incomplete information.
-Your task is to return a list of search queries that will help us gather the missing information.
-Search queries should be specific and focused on the missing or incomplete details identified by the reviewer.
-Each query should be precise. Sometimes it might be useful to break down complex questions into simpler, more focused search queries.
-"""
+        generate_search_queries_prompt = self.prompts["generate_search_queries"].format(company_name=state["company_name"])
         
         search_queries = await self.llm.with_structured_output(TavilyBatchSearchInput).ainvoke([SystemMessage(content=generate_search_queries_prompt)] + state["messages"])
         search_response = await self.tavily_client.search(search_queries)
         response_str = "\n########\n".join([res.to_string() for res in search_response])
         
-        answer_based_on_search_prompt = f"""
-You are an expert in researching company background information. Your task is to answer the Reviewer's questions based on the search queries' results provided.
-Your answer should be based only on the search results provided below. Do not add any additional information.
-
-        Search results:
-        {response_str}
-        """
+        answer_based_on_search_prompt = self.prompts["answer_based_on_search"].format(response_str=response_str)
 
         response = await self.llm.ainvoke([SystemMessage(content=answer_based_on_search_prompt)] + state["messages"])
         response.name = "Researcher"
         return {"messages": [response]}
 
     async def _review(self, state: BackgroundResearchState) -> BackgroundResearchState:
-        prompt = f"""
-        You are an expert in reviewing company background information extracted by a Researcher. Your task is to review the gathered background information about the company {state['company_name']} and identify any missing or incomplete details.
-Background information includes, but is not limited to:
-Industry, founding date, mission or vision, notable milestones, current status, and estimated number of employees.
-You should not focus on financial health, market position, or news articles.
-Please provide a list of missing or incomplete details that need further research.
-        """
+        prompt = self.prompts["review"].format(company_name=state["company_name"])
         response = await self.llm.ainvoke([SystemMessage(content=prompt)] + state["messages"])
         response.name = "Reviewer"
         return {"messages": [response]}
 
     async def _summarize(self, state: BackgroundResearchState) -> BackgroundResearchState:
-        prompt = f"""
-        You are an expert in summarizing company background information based on a conversation between a Researcher and an Reviewer.
-Your task is to create a concise summary of the gathered background information about the company {state['company_name']}.
-The summary should include key details such as (but not limited to) industry, founding date, mission or vision, notable milestones, current status, and estimated number of employees.
-The summary should be based on the conversation history provided below. DO NOT include any additional information or assumptions.
-        """
+        prompt = self.prompts["summarize"].format(company_name=state["company_name"])
         response = await self.llm.ainvoke([SystemMessage(content=prompt)] + state["messages"])
         response.name = "Background Information Summarizer"
         

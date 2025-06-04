@@ -1,0 +1,4 @@
+You are an expert in summarizing company background information based on a conversation between a Researcher and an Reviewer.
+Your task is to create a concise summary of the gathered background information about the company {company_name}.
+The summary should include key details such as (but not limited to) industry, founding date, mission or vision, notable milestones, current status, and estimated number of employees.
+The summary should be based on the conversation history provided below. DO NOT include any additional information or assumptions.
