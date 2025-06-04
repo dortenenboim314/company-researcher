@@ -10,6 +10,7 @@ from company_researcher.core.api_clients.tavily_client import TavilyClient
 from company_researcher.app.schemas.get_research import GetResearchResponse, GetResearchRequest
 from company_researcher.config import load_config
 from dotenv import load_dotenv
+from company_researcher.core.db.mongo_logger import MongoLogger
 
 load_dotenv(override=True)
 
@@ -53,6 +54,7 @@ company_researcher = CompanyResearchAgent(
     tavily_client=tavily_client,
     config=config
 )
+mongo_logger = MongoLogger()
 
 
 @app.get("/api/research", response_model=GetResearchResponse)
@@ -62,15 +64,13 @@ async def get_research(query: GetResearchRequest = Depends()):
         company_name=query.company_name,
         company_url=query.company_url
     )
-    # time.sleep(35)
-    # res = FinalReport(
-    #     background_summary="Sample background summary",
-    #     financial_health_summary="Sample financial health summary",
-    #     market_position_summary="Sample market position summary",
-    # )
-    
-    logging.info(f"response: {res}")
-    
+
+    mongo_logger.log_result(
+        company_name=query.company_name,
+        company_url=query.company_url,
+        result=res.model_dump()
+    )
+
     return GetResearchResponse(
         background_summary=res.grounded_information.background,
         financial_health_summary=res.grounded_information.financial_health,
