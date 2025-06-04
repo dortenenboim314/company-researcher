@@ -46,7 +46,7 @@ class BackgroundAgent:
         self.graph.add_edge("summarize", END)
         
         self.prompts = {
-            "crawl": load_prompt("background\crawl.txt"),
+            "extract_from_site_content": load_prompt("background\extract_from_site_content.txt"),
         }
     
     def compile(self) -> StateGraph:
@@ -61,8 +61,7 @@ class BackgroundAgent:
         site_contents = await self.tavily_client.crawl(state["company_url"], max_depth=2, limit=5, instructions=f"Gather background information about the company {state['company_name']}.")
         site_contents_str = "\n######\n".join([site.to_string() for site in site_contents])
         
-        prompt = self.prompts["crawl"].format(site_contents_str=site_contents_str, company_name=state["company_name"])
-        logging.info(f"Prompt for background research:\n{prompt}")
+        prompt = self.prompts["extract_from_site_content"].format(site_contents_str=site_contents_str, company_name=state["company_name"])
         response = await self.llm.ainvoke([HumanMessage(content=prompt)])
         response.name = "Researcher"
         return {"messages": [response]} 
