@@ -1,0 +1,9 @@
+You will be given a conversation between an interviewer and an expert.
+The Interview is about {company_name}'s {topic_name}, which is defined as: {topic_description}.
+You are also given the following background information about the company:
+{company_background}
+
+Your answer should be based only on the search results provided below. Do not add any additional information.
+Note that search results may contain irrelevant information so you should use your expertise to filter out the noise and focus on information which is relevant to the topic of the interview and the company being researched.
+Here are the search results:
+{search_results}

@@ -18,6 +18,9 @@ class PageContent(BaseModel):
     url: str = Field(description="The URL to crawl.")
     raw_content: str = Field(description="The content of the page to be crawled.")
     
+    def to_string(self) -> str:
+        return f"URL: {self.url}\nRaw Content: {self.raw_content}"
+    
     class Config:
         allow_population_by_field_name = True
         
@@ -35,6 +38,23 @@ class SearchResponse(BaseModel):
     answer: Optional[str] = Field(default=None, description="The answer to the search query.")
     candidates: List[ResultCandidate] = Field(alias="results",description="List of search results.")
     
+    def to_string(self, top_k_candidates: int = 3) -> str:
+        info = []
+        if self.query:
+            info.append(f"Query: {self.query}")
+        if self.answer:
+            info.append(f"Snippet: {self.answer}")
+        if self.candidates:
+            info.append("Results:")
+            for result in sorted(self.candidates, key=lambda x: x.score, reverse=True)[:top_k_candidates]:
+                info.append(f"- {result.title} ({result.url})")
+                if result.content:
+                    info.append(f"  Snippet: {result.content}")
+                if result.score:
+                        info.append(f"  Score: {result.score:.2f}")
+            
+        return '\n'.join(info)
+
     class Config:
         allow_population_by_field_name = True
 
@@ -43,14 +63,11 @@ class TavilyClient:
     A simple client for interacting with the Tavily search API.
     """
     
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self):
         """
         Initialize the Tavily client.
-        
-        Args:
-            api_key: Tavily API key. If None, will try to load from TAVILY_API_KEY env var.
         """
-        self.api_key = api_key or os.getenv("TAVILY_API_KEY")
+        self.api_key = os.getenv("TAVILY_API_KEY")
         self.async_client = AsyncTavilyClient(api_key=self.api_key)
         
         if not self.api_key:
@@ -83,8 +100,8 @@ class TavilyClient:
 
         logging.info(f"Extracted {len(pages)} pages from crawl.")
         return pages
-        
-    async def search(self, batch_search_input: TavilyBatchSearchInput) -> List[SearchResponse]:
+
+    async def search(self, batch_search_input: TavilyBatchSearchInput, **kwargs) -> List[SearchResponse]:
         """
         Perform a web search using Tavily API.
         
@@ -98,7 +115,7 @@ class TavilyClient:
         logging.info(f"Starting search for {len(batch_search_input.queries)} queries.")
         
         results = await asyncio.gather(
-            *[self.async_client.search(query=query) for query in batch_search_input.queries]
+            *[self.async_client.search(query=query, include_answer=True, **kwargs) for query in batch_search_input.queries]
         )
         
         logging.info(f"Search completed, got {len(results)} results.")
