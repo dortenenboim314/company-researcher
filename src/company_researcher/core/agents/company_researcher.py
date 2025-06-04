@@ -93,6 +93,8 @@ class CompanyResearchAgent:
         You need to write a report to a reader who is not familiar with the company or the research process.
         The report should be concise, clear, and informative, summarizing the key findings from each research area.
         The report should be structured and easy to read. You should begin with an introduction to the company, followed by sections for each research area, and conclude with a summary of the overall findings.
+        Your summary should not be long. Pay attention to the word limits for each section:
+        - Background, Financial Health, and Market Position - each should be limited to 130 words.
         The company being researched is {state['company_name']}.
         Below are the results from each research area.
 """
