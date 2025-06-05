@@ -33,7 +33,7 @@ The system follows a multi-agent architecture powered by LangGraph:
 - **Web UI** - Simple, responsive interface for user interaction
 
 ### Data Flow
-Input (Company Name + URL) → Company Researcher → MongoDB Logging → UI Display
+Input (Company Name + URL) → [Company Researcher] → MongoDB Logging → UI Display
 
 #### CompanyResearcher:
 <img src="docs/company_researcher.jpeg" alt="Company Researcher" width="400"/>
