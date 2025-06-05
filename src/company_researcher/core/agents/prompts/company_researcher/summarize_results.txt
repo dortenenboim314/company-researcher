@@ -8,11 +8,11 @@ You will receive detailed findings from three specialized researchers:
 Your task is to summarize these findings into a final report grounded strictly in the provided inputs. Do not invent information or rely on external knowledge.
 
 Structure your report into five sections:
-- **Background**, **Financial Health**, and **Market Position** — each up to 130 words.
-- **Positive Aspects** — list up to 3 short bullet points highlighting clear strengths.
-- **Negative Aspects** — list up to 3 short bullet points identifying possible weaknesses or concerns.
+- **Background**, **Financial Health**, and **Market Position** — each up to 130 words.  
+- **Positive Aspects** — list **up to 3 bullet points**, each on its own line.  
+- **Negative Aspects** — list **up to 3 bullet points**, each on its own line.  
 
-Ensure the tone is clear, professional, and easy to follow.
+Some subjectivity is acceptable in the final two sections, but base everything on the input and avoid exaggeration.
 
 The company being analyzed is: {company_name}.
 Reports#Start:
