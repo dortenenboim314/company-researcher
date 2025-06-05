@@ -53,7 +53,6 @@ Input (Company Name + URL) → [Company Researcher] → MongoDB Logging → UI D
 ### Backend
 - **FastAPI** - Modern Python web framework
 - **LangGraph** - Agent workflow orchestration
-- **LangChain** - LLM integration and processing
 - **OpenAI GPT** - Language model for analysis and synthesis
 - **Pydantic** - Data validation and serialization
 
