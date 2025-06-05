@@ -215,6 +215,3 @@ company-researcher/
 ├── .ebextensions/                                # EB environment config (e.g. env vars, packages)
 ├── .platform/                                    # EB platform hooks (e.g. NGINX's timeout setup)
 ```
-
-
-**Company Researcher** - Intelligent company analysis powered by AI agents 🚀
