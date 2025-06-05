@@ -220,29 +220,29 @@ Response format:
 ```
 company-researcher/
 ├── src/company_researcher/
-│   ├── app/                          # FastAPI application
-│   │   ├── app.py                   # Main FastAPI app with routes
-│   │   ├── schemas/                 # Pydantic models
-│   │   └── templates/               # Jinja2 HTML templates
-│   ├── config/                      # Configuration management
-│   │   ├── config.py               # Configuration loader
-│   │   └── config.yaml             # Application settings
-│   └── core/                       # Core business logic
-│       ├── agents/                 # LangGraph agents
-│       │   ├── company_researcher.py    # Main research orchestrator
-│       │   ├── background.py           # Background research agent
-│       │   ├── news.py                 # News research agent
-│       │   ├── research_topic_interviewer.py  # Topic-specific research
-│       │   └── prompts/               # Agent prompts and templates
-│       ├── api_clients/            # External API integrations
-│       │   └── tavily_client.py    # Tavily search client
-│       └── db/                     # Database operations
-│           └── mongo_logger.py     # MongoDB logging utilities
-├── application.py                  # WSGI entry point for deployment
-├── Procfile                       # Elastic Beanstalk process configuration
-├── requirements.txt               # Python dependencies
-├── .env-example                   # Environment variables template
-└── README.md                      # This file
+│   ├── app/                                      # FastAPI application
+│   │   ├── app.py                                # Main FastAPI app with routes
+│   │   ├── schemas/                              # Pydantic models
+│   │   └── templates/                            # Jinja2 HTML templates
+│   ├── config/                                   # Configuration management
+│   │   ├── config.py                             # Configuration loader
+│   │   └── config.yaml                           # Application settings
+│   └── core/                                     # Core business logic
+│       ├── agents/                               # LangGraph agents
+│       │   ├── company_researcher.py             # Main research orchestrator
+│       │   ├── background.py                     # Background research agent
+│       │   ├── news.py                           # News research agent
+│       │   ├── research_topic_interviewer.py     # Topic-specific research
+│       │   └── prompts/                          # Agent prompts and templates
+│       ├── api_clients/                          # External API integrations
+│       │   └── tavily_client.py                  # Tavily search client
+│       └── db/                                   # Database operations
+│           └── mongo_logger.py                   # MongoDB logging utilities
+├── application.py                                # WSGI entry point for deployment
+├── Procfile                                      # Elastic Beanstalk process configuration
+├── requirements.txt                              # Python dependencies
+├── .env-example                                  # Environment variables template
+└── README.md                                     # This file
 ```
 
 
