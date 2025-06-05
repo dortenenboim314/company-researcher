@@ -113,22 +113,24 @@ mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<database>?retryWrites
 ### 5. Configuration
 The application uses `src/company_researcher/config/config.yaml` for settings. Default configuration:
 ```yaml
-openai_model: "gpt-4"
-llm_temperature: 0
-max_searches_per_agent: 3
+openai_model: "gpt-4o"
+llm_temperature: 0.0
+max_searches_per_agent: 1
 ```
+
+**Configuration Fields:**
+
+- **`openai_model`**: Specifies which OpenAI language model to use for analysis and synthesis (e.g., "gpt-4o", "gpt-4")
+- **`llm_temperature`**: Controls the randomness of AI responses (0.0 = deterministic/consistent, 1.0 = creative/varied)
+- **`max_searches_per_agent`**: Limits the number of web searches each research agent can perform per analysis
 
 ## Run Locally
 
 ### Start the Application
 ```bash
+cd src
 uvicorn src.company_researcher.app.app:app --host 0.0.0.0 --port 8000 --reload
 ```
-
-### Access the Application
-- **Web Interface**: http://localhost:8000
-- **API Documentation**: http://localhost:8000/docs
-- **Health Check**: http://localhost:8000/api/research
 
 ### Using the Web Interface
 1. Navigate to http://localhost:8000
@@ -243,47 +245,5 @@ company-researcher/
 └── README.md                      # This file
 ```
 
-### Agent Architecture
-
-#### CompanyResearchAgent
-- **Purpose**: Main orchestrator coordinating all research activities
-- **Flow**: Background Research → Parallel Financial & Market Analysis → Results Synthesis
-- **Output**: Structured company research report
-
-#### BackgroundAgent
-- **Purpose**: Fundamental company information gathering
-- **Research Areas**: History, industry, founding, mission, milestones, size
-- **Search Strategy**: Company websites, official sources, news articles
-
-#### TopicResearchAgent (Financial Health)
-- **Purpose**: Financial analysis and health assessment
-- **Research Areas**: Revenue, expenses, profitability, financial trends
-- **Search Strategy**: Financial reports, earnings news, analyst reports
-
-#### TopicResearchAgent (Market Position)
-- **Purpose**: Competitive landscape and market analysis
-- **Research Areas**: Competitors, market share, industry trends, positioning
-- **Search Strategy**: Industry reports, competitive analysis, market research
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Support
-
-For questions or issues:
-1. Check the existing GitHub issues
-2. Create a new issue with detailed information
-3. Include logs and error messages when applicable
-
----
 
 **Company Researcher** - Intelligent company analysis powered by AI agents 🚀
