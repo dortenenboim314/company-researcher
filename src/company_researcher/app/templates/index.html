@@ -205,23 +205,11 @@
         }, 6000); // You might want to adjust the interval if you add more loading messages
 
         try {
-            // Simulate API call for demonstration
-            // const response = await fetch(`/api/research?company_name=${encodeURIComponent(companyName)}&company_url=${encodeURIComponent(companyUrl)}`);
-            // if (!response.ok) {
-            //     throw new Error(`HTTP error! status: ${response.status}`);
-            // }
-            // const data = await response.json();
-
-            // Mock data for demonstration purposes
-            await new Promise(resolve => setTimeout(resolve, 28000)); // Simulate network delay + processing
-            const data = {
-                background_summary: "This is a sample background summary for " + companyName + ".",
-                financial_health_summary: "The company shows strong financial health based on recent reports.",
-                market_position_summary: companyName + " holds a significant position in its market segment.",
-                positive_aspects: "Key strengths include innovative products, a loyal customer base, and strong leadership. Opportunities lie in expanding to new markets.",
-                negative_aspects: "Weaknesses involve high operational costs. Threats include increasing competition and changing market regulations."
-            };
-            // End of mock data
+            const response = await fetch(`/api/research?company_name=${encodeURIComponent(companyName)}&company_url=${encodeURIComponent(companyUrl)}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
 
             displayResults(data);
         } catch (error) {
