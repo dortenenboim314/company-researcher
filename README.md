@@ -19,6 +19,32 @@ The application uses multiple specialized AI agents working in parallel to provi
 
 Experience the full capabilities of our AI-powered company research tool with the live demo. Simply enter a company name and URL to get comprehensive analysis including background research, financial health evaluation, and market position assessment.
 
+## Project Structure
+
+```
+company-researcher/
+├── src/company_researcher/
+│   ├── app/                                      # FastAPI application
+│   │   ├── app.py                                # Main FastAPI app with routes
+│   │   ├── schemas/                              # Pydantic models
+│   │   └── templates/                            # Jinja2 HTML templates
+│   ├── config/                                   # Configuration management
+│   │   ├── config.py                             # Configuration schema & loader
+│   │   └── config.yaml                           # Application settings
+│   └── core/                                     # Core business logic
+│       ├── agents/                               # LangGraph agents
+│       ├── api_clients/                          # External API integrations
+│       └── db/                                   # Database operations
+├── application.py                                # WSGI entry point for deployment
+├── Procfile                                      # Elastic Beanstalk process configuration
+├── requirements.txt                              # Python dependencies
+├── .env-example                                  # Environment variables template
+├── README.md                                     # Main project documentation
+├── docs/                                         # Images, diagrams, or extra markdown docs
+├── .ebextensions/                                # EB environment config (e.g. env vars, packages)
+├── .platform/                                    # EB platform hooks (e.g. NGINX's timeout setup)
+```
+
 ## Architecture Summary
 
 The system follows a multi-agent architecture powered by LangGraph:
@@ -188,30 +214,3 @@ The repository includes deployment configuration:
 1. Whitelist your Elastic Beanstalk IP ranges in MongoDB Atlas Network Access
 2. Create a dedicated database user for the application
 3. Use the connection string in your environment variables
-
-
-## Project Structure
-
-```
-company-researcher/
-├── src/company_researcher/
-│   ├── app/                                      # FastAPI application
-│   │   ├── app.py                                # Main FastAPI app with routes
-│   │   ├── schemas/                              # Pydantic models
-│   │   └── templates/                            # Jinja2 HTML templates
-│   ├── config/                                   # Configuration management
-│   │   ├── config.py                             # Configuration schema & loader
-│   │   └── config.yaml                           # Application settings
-│   └── core/                                     # Core business logic
-│       ├── agents/                               # LangGraph agents
-│       ├── api_clients/                          # External API integrations
-│       └── db/                                   # Database operations
-├── application.py                                # WSGI entry point for deployment
-├── Procfile                                      # Elastic Beanstalk process configuration
-├── requirements.txt                              # Python dependencies
-├── .env-example                                  # Environment variables template
-├── README.md                                     # Main project documentation
-├── docs/                                         # Images, diagrams, or extra markdown docs
-├── .ebextensions/                                # EB environment config (e.g. env vars, packages)
-├── .platform/                                    # EB platform hooks (e.g. NGINX's timeout setup)
-```
