@@ -13,6 +13,12 @@ Company Researcher is an intelligent research assistant that automates the proce
 
 The application uses multiple specialized AI agents working in parallel to provide thorough, well-researched company insights.
 
+## 🚀 Try It Live
+
+**[Try the Company Researcher here →](http://company-research.eu-north-1.elasticbeanstalk.com/)**
+
+Experience the full capabilities of our AI-powered company research tool with the live demo. Simply enter a company name and URL to get comprehensive analysis including background research, financial health evaluation, and market position assessment.
+
 ## Architecture Summary
 
 The system follows a multi-agent architecture powered by LangGraph:
