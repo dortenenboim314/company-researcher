@@ -74,6 +74,8 @@ async def get_research(query: GetResearchRequest = Depends()):
     return GetResearchResponse(
         background_summary=res.grounded_information.background,
         financial_health_summary=res.grounded_information.financial_health,
-        market_position_summary=res.grounded_information.market_position
+        market_position_summary=res.grounded_information.market_position,
+        positive_aspects=res.positive_aspects,
+        negative_aspects=res.negative_aspects
     )
     
