@@ -165,7 +165,7 @@ eb create company-researcher-env
 #### 4. Configure Environment Variables
 Set your environment variables in the EB console or via CLI:
 ```bash
-eb setenv OPENAI_API_KEY=your_key TAVILY_API_KEY=your_key MONGO_URI=your_uri
+eb setenv PYTHONPATH=/var/app/current/src OPENAI_API_KEY=your_key TAVILY_API_KEY=your_key MONGO_URI=your_uri
 ```
 
 #### 5. Deploy
@@ -184,36 +184,6 @@ The repository includes deployment configuration:
 2. Create a dedicated database user for the application
 3. Use the connection string in your environment variables
 
-## Example Usage
-
-### Sample Research Process
-1. **Input**: Company Name: "Tesla", URL: "https://www.tesla.com"
-2. **Processing**: 
-   - Background research collects founding information, mission, industry details
-   - Financial agent analyzes revenue, profitability, and financial trends
-   - Market position agent evaluates competitors and market share
-3. **Output**: Structured report with:
-   - **Background**: Founded in 2003, electric vehicle manufacturer, sustainable energy focus
-   - **Financial Health**: Revenue growth, profitability trends, investment patterns
-   - **Market Position**: EV market leader, competition from traditional automakers
-   - **Positive Aspects**: Innovation, brand strength, technological advancement
-   - **Negative Aspects**: Production challenges, regulatory risks, market volatility
-
-### API Usage
-```bash
-curl "http://localhost:8000/api/research?company_name=Tesla&company_url=https://www.tesla.com"
-```
-
-Response format:
-```json
-{
-  "background_summary": "Detailed company background...",
-  "financial_health_summary": "Financial analysis...",
-  "market_position_summary": "Market position evaluation...",
-  "positive_aspects": ["Innovation leadership", "Strong brand recognition"],
-  "negative_aspects": ["Production scaling challenges", "Regulatory dependencies"]
-}
-```
 
 ## Project Structure
 
