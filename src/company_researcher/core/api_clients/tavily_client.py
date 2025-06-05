@@ -71,7 +71,8 @@ class TavilyClient:
         self.async_client = AsyncTavilyClient(api_key=self.api_key)
         
         if not self.api_key:
-            print("⚠️ TAVILY_API_KEY not found in environment variables")
+            logging.error("TAVILY_API_KEY not found in environment variables")
+            raise ValueError("TAVILY_API_KEY must be set in environment variables")
             
     async def crawl(self, url: str, max_depth, limit, instructions=None) -> list[PageContent]:
         """
