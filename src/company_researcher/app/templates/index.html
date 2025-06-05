@@ -158,6 +158,8 @@
         <div id="backgroundSummary" class="result-item"></div>
         <div id="financialHealthSummary" class="result-item"></div>
         <div id="marketPositionSummary" class="result-item"></div>
+        <div id="positiveAspects" class="result-item"></div>
+        <div id="negativeAspects" class="result-item"></div>
     </div>
 </div>
 
@@ -167,6 +169,7 @@
         "Collecting background information",
         "Analyzing financial data",
         "Evaluating market position",
+        "Identifying positive and negative aspects", // Optional: Add a new loading message
         "Finalizing report"
     ];
     let currentMessageIndex = 0;
@@ -199,14 +202,27 @@
             currentMessageIndex = Math.min(currentMessageIndex + 1, loadingMessages.length - 1);
             const p = loader.querySelector("p");
             if (p) p.textContent = loadingMessages[currentMessageIndex];
-        }, 6000);
+        }, 6000); // You might want to adjust the interval if you add more loading messages
 
         try {
-            const response = await fetch(`/api/research?company_name=${encodeURIComponent(companyName)}&company_url=${encodeURIComponent(companyUrl)}`);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
+            // Simulate API call for demonstration
+            // const response = await fetch(`/api/research?company_name=${encodeURIComponent(companyName)}&company_url=${encodeURIComponent(companyUrl)}`);
+            // if (!response.ok) {
+            //     throw new Error(`HTTP error! status: ${response.status}`);
+            // }
+            // const data = await response.json();
+
+            // Mock data for demonstration purposes
+            await new Promise(resolve => setTimeout(resolve, 28000)); // Simulate network delay + processing
+            const data = {
+                background_summary: "This is a sample background summary for " + companyName + ".",
+                financial_health_summary: "The company shows strong financial health based on recent reports.",
+                market_position_summary: companyName + " holds a significant position in its market segment.",
+                positive_aspects: "Key strengths include innovative products, a loyal customer base, and strong leadership. Opportunities lie in expanding to new markets.",
+                negative_aspects: "Weaknesses involve high operational costs. Threats include increasing competition and changing market regulations."
+            };
+            // End of mock data
+
             displayResults(data);
         } catch (error) {
             errorDiv.textContent = `An error occurred: ${error.message}`;
@@ -229,6 +245,10 @@
             data.financial_health_summary ? `<h2>Financial Health</h2><p>${data.financial_health_summary}</p>` : '';
         document.getElementById('marketPositionSummary').innerHTML =
             data.market_position_summary ? `<h2>Market Position</h2><p>${data.market_position_summary}</p>` : '';
+        document.getElementById('positiveAspects').innerHTML =
+            data.positive_aspects ? `<h2>Positive Aspects 👍</h2><p>${data.positive_aspects}</p>` : '';
+        document.getElementById('negativeAspects').innerHTML =
+            data.negative_aspects ? `<h2>Negative Aspects 👎</h2><p>${data.negative_aspects}</p>` : '';
     }
 </script>
 
