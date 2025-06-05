@@ -234,10 +234,15 @@
         document.getElementById('marketPositionSummary').innerHTML =
             data.market_position_summary ? `<h2>Market Position</h2><p>${data.market_position_summary}</p>` : '';
         document.getElementById('positiveAspects').innerHTML =
-            data.positive_aspects ? `<h2>Positive Aspects 👍</h2><p>${data.positive_aspects}</p>` : '';
+            data.positive_aspects
+                ? `<h2>Positive Aspects 👍</h2><p>${data.positive_aspects.join('<br>')}</p>`
+                : '';
+
         document.getElementById('negativeAspects').innerHTML =
-            data.negative_aspects ? `<h2>Negative Aspects 👎</h2><p>${data.negative_aspects}</p>` : '';
-    }
+            data.negative_aspects
+                ? `<h2>Negative Aspects 👎</h2><p>${data.negative_aspects.join('<br>')}</p>`
+                : '';
+            }
 </script>
 
 </body>

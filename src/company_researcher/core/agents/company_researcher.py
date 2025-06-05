@@ -22,8 +22,8 @@ class GroundedInformation(BaseModel):
 
 class CompanyResearchOutput(BaseModel):
     grounded_information: GroundedInformation = Field(description="Grounded information about the company, including background, financial health, and market position. should contain only information from the research conducted by the agents.")
-    positive_aspects: str = Field(description="Positive aspects of the company, such as strengths, opportunities, and positive trends.")
-    negative_aspects: str = Field(description="Negative aspects of the company, such as weaknesses, threats, and negative trends.")
+    positive_aspects: list[str] = Field(description="List of Positive aspects of the company, such as strengths, opportunities, and positive trends.")
+    negative_aspects: list[str] = Field(description="List of Negative aspects of the company, such as weaknesses, threats, and negative trends.")
 
 class CompanyResearchState(MessagesState):
     company_name: str

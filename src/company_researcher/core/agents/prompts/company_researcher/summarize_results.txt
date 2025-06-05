@@ -9,8 +9,8 @@ Your task is to summarize these findings into a final report grounded strictly i
 
 Structure your report into five sections:
 - **Background**, **Financial Health**, and **Market Position** — each up to 130 words.  
-- **Positive Aspects** — list **up to 3 bullet points**, each on its own line.  
-- **Negative Aspects** — list **up to 3 bullet points**, each on its own line.  
+- **Positive Aspects** — list **up to 3 bullet points**
+- **Negative Aspects** — list **up to 3 bullet points**
 
 Some subjectivity is acceptable in the final two sections, but base everything on the input and avoid exaggeration.
 
